@@ -4,7 +4,6 @@ using System.Text;
 using System.IO;
 using Newtonsoft.Json;
 
-
 namespace TwitchIRC
 {
     public class Twitch
@@ -22,12 +21,14 @@ namespace TwitchIRC
             }
         }
 
-        private bool m_bInitialized;
+        public IRCConnection m_ChannelIRC, m_WhisperIRC;
+
+        private bool m_bRunning;
         private Settings m_Settings;
 
         private Twitch()
         {
-            m_bInitialized = false;
+            m_bRunning = true;
             string sSettingsPath = Directory.GetCurrentDirectory() + "/Data/Settings.json";
             if (File.Exists(sSettingsPath))
             {
@@ -44,8 +45,9 @@ namespace TwitchIRC
 
                                 if (m_Settings != null)
                                 {
-                                    Console.WriteLine("Username: " + m_Settings.Username);
-                                    Console.WriteLine("OAuth: " + m_Settings.OAuth);
+                                    // TODO Start the Connections
+                                    m_ChannelIRC = new IRCConnection("irc.twitch.tv", 6667, "iso8859-1", m_Settings.Username, m_Settings.OAuth, ChannelThread);
+                                    m_ChannelIRC.Start();
                                 }
                             }
                         }
@@ -61,6 +63,62 @@ namespace TwitchIRC
             {
                 Console.WriteLine("Error: Required File Settings.json is missing from the Data folder. Please re-add this file here: " + sSettingsPath + " to continue!");
             }
+        }
+
+        private void ChannelThread()
+        {
+            string sTempData = "";
+
+            while (m_bRunning && ((sTempData = m_ChannelIRC.Read()) != null))
+            {
+                try
+                {
+                    Console.WriteLine(sTempData);
+
+                    if (!m_ChannelIRC.Initialized)
+                    {
+                        if (sTempData.Contains("You are in a maze of twisty passages, all alike."))
+                        {
+                            Console.WriteLine("Initialized Channel IRC Connection!");
+                            m_ChannelIRC.Initialized = true;
+                            //m_ChannelIRC.Write("JOIN #sirtucx\n");
+                        }
+                    }
+                    else
+                    {
+                        if (sTempData.Contains("End of /NAMES list") && !sTempData.Contains("PRIVMSG"))
+                        {
+                            m_ChannelIRC.Write("PRIVMSG #sirtucx :Hello World MrDestructoid");
+                            //m_ChannelIRC.Write("PART #sirtucx\n");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        public void JoinChannel(string sChannel)
+        {
+            if (m_ChannelIRC.Initialized)
+            {
+                m_ChannelIRC.Write("JOIN #" + sChannel + "\n");
+            }
+        }
+        public void LeaveChannel(string sChannel)
+        {
+            if (m_ChannelIRC.Initialized)
+            {
+                m_ChannelIRC.Write("PART #" + sChannel + "\n");
+            }
+        }
+
+        public void CloseConnection()
+        {
+            m_ChannelIRC.CloseConnection();
+            m_bRunning = false;
         }
     }
 }
