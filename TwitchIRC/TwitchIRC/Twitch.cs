@@ -91,13 +91,10 @@ namespace TwitchIRC
                         {
                             Console.WriteLine("Tucxbot has joined a channel!");
                             m_ChannelIRC.Write("PRIVMSG #sirtucx :Hello World MrDestructoid");
-
-
-
-                            if (sTempData.Contains("PING") && !sTempData.Contains("PRIVMSG"))
-                            {
-                                m_ChannelIRC.Write("PONG :tmi.twitch.tv");
-                            }
+                        }
+                        if (sTempData.Contains("PING") && !sTempData.Contains("PRIVMSG"))
+                        {
+                            m_ChannelIRC.Write("PONG :tmi.twitch.tv");
                         }
                     }
                 }
