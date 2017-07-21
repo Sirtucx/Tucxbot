@@ -32,6 +32,12 @@
             this.btnLeave = new System.Windows.Forms.Button();
             this.tBoxJoin = new System.Windows.Forms.TextBox();
             this.tBoxLeave = new System.Windows.Forms.TextBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.rTBoxChannels = new System.Windows.Forms.RichTextBox();
+            this.tTBoxWhispers = new System.Windows.Forms.RichTextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnJoin
@@ -68,11 +74,59 @@
             this.tBoxLeave.Size = new System.Drawing.Size(75, 20);
             this.tBoxLeave.TabIndex = 3;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.tTBoxWhispers);
+            this.groupBox1.Controls.Add(this.rTBoxChannels);
+            this.groupBox1.Location = new System.Drawing.Point(14, 114);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(307, 289);
+            this.groupBox1.TabIndex = 4;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Chat Boxes";
+            // 
+            // rTBoxChannels
+            // 
+            this.rTBoxChannels.Location = new System.Drawing.Point(7, 37);
+            this.rTBoxChannels.Name = "rTBoxChannels";
+            this.rTBoxChannels.Size = new System.Drawing.Size(139, 246);
+            this.rTBoxChannels.TabIndex = 0;
+            this.rTBoxChannels.Text = "";
+            // 
+            // tTBoxWhispers
+            // 
+            this.tTBoxWhispers.Location = new System.Drawing.Point(162, 37);
+            this.tTBoxWhispers.Name = "tTBoxWhispers";
+            this.tTBoxWhispers.Size = new System.Drawing.Size(139, 246);
+            this.tTBoxWhispers.TabIndex = 1;
+            this.tTBoxWhispers.Text = "";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(7, 20);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(46, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Channel";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(162, 20);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(51, 13);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Whispers";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(333, 104);
+            this.ClientSize = new System.Drawing.Size(332, 415);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.tBoxLeave);
             this.Controls.Add(this.tBoxJoin);
             this.Controls.Add(this.btnLeave);
@@ -80,6 +134,8 @@
             this.Name = "MainForm";
             this.Text = "Form1";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -91,6 +147,11 @@
         private System.Windows.Forms.Button btnLeave;
         private System.Windows.Forms.TextBox tBoxJoin;
         private System.Windows.Forms.TextBox tBoxLeave;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.RichTextBox tTBoxWhispers;
+        private System.Windows.Forms.RichTextBox rTBoxChannels;
     }
 }
 

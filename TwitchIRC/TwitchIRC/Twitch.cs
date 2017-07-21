@@ -92,7 +92,26 @@ namespace TwitchIRC
                             Console.WriteLine("Tucxbot has joined a channel!");
                             m_ChannelIRC.Write("PRIVMSG #sirtucx :Hello World MrDestructoid");
                         }
-                        if (sTempData.Contains("PING") && !sTempData.Contains("PRIVMSG"))
+                        else if (sTempData.Contains("tmi.twitch.tv PART #") && !sTempData.Contains("PRIVMSG"))
+                        {
+                            // Tucxbot has left the channel
+                        }
+                        else if (sTempData.Contains("PRIVMSG"))
+                        {
+                            //:sirtucx!sirtucx@sirtucx.tmi.twitch.tv PRIVMSG #sirtucx :What ??
+                            string sUsername = sTempData.Substring(1, sTempData.IndexOf('!') - 1);
+
+                            int iStart = sTempData.IndexOf('#') + 1;
+                            int iEnd = sTempData.IndexOf(':', iStart) - 1;
+                            string sChannel = sTempData.Substring(iStart, iEnd - iStart);
+
+                            iStart = iEnd + 1;
+                            iEnd = sTempData.Length;
+                            string sMessage = sTempData.Substring(iStart, iEnd - iStart);
+
+                            Console.WriteLine("User -> {0}|Channel -> {1}|Message -> {2}", sUsername, sChannel, sMessage);
+                        }
+                        else if (sTempData.Contains("PING") && !sTempData.Contains("PRIVMSG"))
                         {
                             m_ChannelIRC.Write("PONG :tmi.twitch.tv");
                         }
