@@ -88,7 +88,6 @@ namespace TwitchIRC
             Write("USER " + m_sUsername + "tmi twitch :" + m_sUsername);
             Write("PASS " + m_sOAuthKey);
             Write("NICK " + m_sUsername.ToLower());
-            Write("CAP REQ :twitch.tv/membership");
         }
         public void CloseConnection()
         {

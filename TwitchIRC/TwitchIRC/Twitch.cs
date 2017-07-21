@@ -45,9 +45,10 @@ namespace TwitchIRC
 
                                 if (m_Settings != null)
                                 {
-                                    // TODO Start the Connections
                                     m_ChannelIRC = new IRCConnection("irc.twitch.tv", 6667, "iso8859-1", m_Settings.Username, m_Settings.OAuth, ChannelThread);
                                     m_ChannelIRC.Start();
+                                    m_WhisperIRC = new IRCConnection("irc.chat.twitch.tv", 6667, "iso8859-1", m_Settings.Username, m_Settings.OAuth, WhisperThread);
+                                    m_WhisperIRC.Start();
                                 }
                             }
                         }
@@ -67,6 +68,7 @@ namespace TwitchIRC
 
         private void ChannelThread()
         {
+            m_ChannelIRC.Write("CAP REQ :twitch.tv/membership");
             string sTempData = "";
 
             while (m_bRunning && ((sTempData = m_ChannelIRC.Read()) != null))
@@ -81,15 +83,21 @@ namespace TwitchIRC
                         {
                             Console.WriteLine("Initialized Channel IRC Connection!");
                             m_ChannelIRC.Initialized = true;
-                            //m_ChannelIRC.Write("JOIN #sirtucx\n");
                         }
                     }
                     else
                     {
                         if (sTempData.Contains("End of /NAMES list") && !sTempData.Contains("PRIVMSG"))
                         {
+                            Console.WriteLine("Tucxbot has joined a channel!");
                             m_ChannelIRC.Write("PRIVMSG #sirtucx :Hello World MrDestructoid");
-                            //m_ChannelIRC.Write("PART #sirtucx\n");
+
+
+
+                            if (sTempData.Contains("PING") && !sTempData.Contains("PRIVMSG"))
+                            {
+                                m_ChannelIRC.Write("PONG :tmi.twitch.tv");
+                            }
                         }
                     }
                 }
@@ -99,12 +107,49 @@ namespace TwitchIRC
                 }
             }
         }
+        private void WhisperThread()
+        {
+            m_WhisperIRC.Write("CAP REQ :twitch.tv/commands");
+            string sTempData = "";
 
+            while (m_bRunning && ((sTempData = m_WhisperIRC.Read()) != null))
+            {
+                try
+                {
+                    Console.WriteLine(sTempData);
+
+                    if (!m_WhisperIRC.Initialized)
+                    {
+                        if (sTempData.Contains("You are in a maze of twisty passages, all alike."))
+                        {
+                            Console.WriteLine("Initialized Whisper IRC Connection!");
+                            m_WhisperIRC.Initialized = true;
+                        }
+                    }
+                    else
+                    {
+                        if (sTempData.Contains("WHISPER"))
+                        {
+                            Console.WriteLine("Someone has whispered us!");
+                        }
+                        else if (sTempData.Contains("PING") && !sTempData.Contains("WHISPER"))
+                        {
+                            m_WhisperIRC.Write("PONG :tmi.twitch.tv");
+                        }
+                    }
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
         public void JoinChannel(string sChannel)
         {
             if (m_ChannelIRC.Initialized)
             {
                 m_ChannelIRC.Write("JOIN #" + sChannel + "\n");
+                Console.WriteLine("Tucxbot is attempting to join " + sChannel + "\'s channel!");
             }
         }
         public void LeaveChannel(string sChannel)
@@ -112,11 +157,13 @@ namespace TwitchIRC
             if (m_ChannelIRC.Initialized)
             {
                 m_ChannelIRC.Write("PART #" + sChannel + "\n");
+                Console.WriteLine("Tucxbot has left " + sChannel + "\'s channel!");
             }
         }
 
         public void CloseConnection()
         {
+            m_WhisperIRC.CloseConnection();
             m_ChannelIRC.CloseConnection();
             m_bRunning = false;
         }
