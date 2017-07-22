@@ -13,10 +13,10 @@ namespace TucxbotForm
 {
     public partial class MainForm : Form
     {
-        Twitch m_TwitchInstance;
-        List<string> m_sJoinedChannels;
-        List<string> m_sPreviousChatMessages;
-        int m_iPreviousIndex;
+        private Twitch m_TwitchInstance;
+        private List<string> m_sJoinedChannels;
+        private List<string> m_sPreviousChatMessages;
+        private int m_iPreviousIndex;
         public MainForm()
         {
             InitializeComponent();
@@ -80,8 +80,6 @@ namespace TucxbotForm
             rTBoxChat.AppendText(e.Sender + ": " + e.Message + "\n");
         }
 
-
-
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             foreach(string channel in m_sJoinedChannels)
@@ -95,7 +93,6 @@ namespace TucxbotForm
             m_TwitchInstance.OnChannelIRCConnected -= OnChannelIRCConnected;
             m_TwitchInstance.CloseConnection();
         }
-
         private void btnJoin_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(tBoxJoin.Text))
@@ -124,7 +121,6 @@ namespace TucxbotForm
                 tBoxJoin.Clear();
             }
         }
-
         private void btnLeave_Click(object sender, EventArgs e)
         {
             string sChannel = cBoxChannels.Items[cBoxChannels.SelectedIndex].ToString();
@@ -153,31 +149,26 @@ namespace TucxbotForm
                 cBoxJoinedChannels.SelectedIndex = 0;
             }
         }
-
         private void rBtnChat_CheckedChanged(object sender, EventArgs e)
         {
             cBoxJoinedChannels.Visible = true;
             tBoxWhisper.Visible = false;
             tBoxWhisper.Text = "Username to whisper";
         }
-
         private void rBtnWhisper_CheckedChanged(object sender, EventArgs e)
         {
             cBoxJoinedChannels.Visible = false;
             tBoxWhisper.Visible = true;
             cBoxChannels.Text = "Select a channel";
         }
-
         private void tBoxWhisper_MouseClick(object sender, MouseEventArgs e)
         {
             tBoxWhisper.Clear();
         }
-
         private void tBoxWhisper_Enter(object sender, EventArgs e)
         {
             tBoxWhisper.Clear();
         }
-
         private void tBoxWhisper_Leave(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(tBoxWhisper.Text))
@@ -185,12 +176,10 @@ namespace TucxbotForm
                 tBoxWhisper.Text = "Username to whisper";
             }
         }
-
         private void tBoxJoin_Enter(object sender, EventArgs e)
         {
             tBoxJoin.Clear();
         }
-
         private void tBoxJoin_Leave(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(tBoxJoin.Text))
@@ -198,7 +187,6 @@ namespace TucxbotForm
                 tBoxJoin.Text = "Channel to join";
             }
         }
-
         private void rTBoxChatOutput_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(rTBoxChatOutput.Text))
@@ -212,16 +200,17 @@ namespace TucxbotForm
                 if (rBtnChat.Checked)
                 {
                     m_TwitchInstance.SendMessage(sTarget, sMessage);
+                    rTBoxChat.AppendText("#" + sTarget + "|(" + m_TwitchInstance.Username + "): " + sMessage + "\n");
                 }
                 else
                 {
                     m_TwitchInstance.SendWhisper(sTarget, sMessage);
+                    rTBoxChat.AppendText(m_TwitchInstance.Username + ": " + sMessage + "\n");
                 }
                 
             }
             
         }
-
         private void rTBoxChatOutput_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Up && m_sPreviousChatMessages.Count > 0)
