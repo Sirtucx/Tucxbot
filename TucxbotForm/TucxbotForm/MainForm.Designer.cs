@@ -37,8 +37,10 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tTBoxWhispers = new System.Windows.Forms.RichTextBox();
             this.rTBoxChannels = new System.Windows.Forms.RichTextBox();
-            this.lblGate = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.rTBoxEvents = new System.Windows.Forms.RichTextBox();
             this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnJoin
@@ -110,38 +112,47 @@
             // 
             // tTBoxWhispers
             // 
-            this.tTBoxWhispers.Enabled = false;
             this.tTBoxWhispers.Location = new System.Drawing.Point(162, 37);
             this.tTBoxWhispers.Name = "tTBoxWhispers";
+            this.tTBoxWhispers.ReadOnly = true;
             this.tTBoxWhispers.Size = new System.Drawing.Size(139, 180);
             this.tTBoxWhispers.TabIndex = 1;
             this.tTBoxWhispers.Text = "";
             // 
             // rTBoxChannels
             // 
-            this.rTBoxChannels.Enabled = false;
             this.rTBoxChannels.Location = new System.Drawing.Point(7, 37);
             this.rTBoxChannels.Name = "rTBoxChannels";
+            this.rTBoxChannels.ReadOnly = true;
             this.rTBoxChannels.Size = new System.Drawing.Size(139, 180);
             this.rTBoxChannels.TabIndex = 0;
             this.rTBoxChannels.Text = "";
             // 
-            // lblGate
+            // groupBox2
             // 
-            this.lblGate.AutoSize = true;
-            this.lblGate.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblGate.Location = new System.Drawing.Point(12, 106);
-            this.lblGate.MaximumSize = new System.Drawing.Size(300, 35);
-            this.lblGate.Name = "lblGate";
-            this.lblGate.Size = new System.Drawing.Size(0, 13);
-            this.lblGate.TabIndex = 5;
+            this.groupBox2.Controls.Add(this.rTBoxEvents);
+            this.groupBox2.Location = new System.Drawing.Point(13, 99);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(302, 75);
+            this.groupBox2.TabIndex = 5;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Event Logs";
+            // 
+            // rTBoxEvents
+            // 
+            this.rTBoxEvents.Location = new System.Drawing.Point(9, 16);
+            this.rTBoxEvents.Name = "rTBoxEvents";
+            this.rTBoxEvents.ReadOnly = true;
+            this.rTBoxEvents.Size = new System.Drawing.Size(287, 50);
+            this.rTBoxEvents.TabIndex = 0;
+            this.rTBoxEvents.Text = "";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(332, 415);
-            this.Controls.Add(this.lblGate);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.tBoxLeave);
             this.Controls.Add(this.tBoxJoin);
@@ -152,6 +163,7 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -168,7 +180,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.RichTextBox tTBoxWhispers;
         private System.Windows.Forms.RichTextBox rTBoxChannels;
-        private System.Windows.Forms.Label lblGate;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.RichTextBox rTBoxEvents;
     }
 }
 

@@ -24,6 +24,13 @@ namespace TwitchIRC
         public IRCConnection m_ChannelIRC, m_WhisperIRC;
         public event EventHandler<ChannelGateInteractionEventArgs> OnChannelEnter, OnChannelPart;
         public Action OnChannelIRCConnected;
+        public string Username
+        {
+            get
+            {
+                return m_Settings.Username;
+            }
+        }
 
         private ChannelGateInteractionEventArgs m_ChannelInteractionArgs;
         private bool m_bRunning;
@@ -143,6 +150,10 @@ namespace TwitchIRC
                                     string sChannel = GetChannel(sTempData);
                                     foreach (string s in sUserList)
                                     {
+                                        if (s == Username || s == sChannel)
+                                        {
+                                            continue;
+                                        }
                                         Console.WriteLine("{0} is already in the channel!", s);
 
                                         m_ChannelInteractionArgs.Joining = true;
