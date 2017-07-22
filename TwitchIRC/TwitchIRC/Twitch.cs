@@ -23,6 +23,7 @@ namespace TwitchIRC
 
         public IRCConnection m_ChannelIRC, m_WhisperIRC;
         public event EventHandler<ChannelGateInteractionEventArgs> OnChannelEnter, OnChannelPart;
+        public event EventHandler<ChatInputEventArgs> OnChannelInput, OnWhisperInput, OnChannelOutput, OnWhisperOutput;
         public Action OnChannelIRCConnected;
         public string Username
         {
@@ -33,12 +34,15 @@ namespace TwitchIRC
         }
 
         private ChannelGateInteractionEventArgs m_ChannelInteractionArgs;
+        private ChatInputEventArgs m_ChatInputArgs, m_ChatOutputArgs;
         private bool m_bRunning;
         private Settings m_Settings;
 
         private Twitch()
         {
             m_ChannelInteractionArgs = new ChannelGateInteractionEventArgs();
+            m_ChatInputArgs = new ChatInputEventArgs();
+            m_ChatOutputArgs = new ChatInputEventArgs();
             m_bRunning = true;
             string sSettingsPath = Directory.GetCurrentDirectory() + "/Data/Settings.json";
             if (File.Exists(sSettingsPath))
@@ -176,6 +180,14 @@ namespace TwitchIRC
                             string sMessage = GetMessage(sTempData);
 
                             Console.WriteLine("User -> {0}|Channel -> {1}|Message -> {2}", sUsername, sChannel, sMessage);
+                            m_ChatInputArgs.Target = sChannel;
+                            m_ChatInputArgs.Sender = sUsername;
+                            m_ChatInputArgs.Message = sMessage;
+
+                            if (OnChannelInput != null)
+                            {
+                                OnChannelInput(this, m_ChatInputArgs);
+                            }
                         }
                         else if (sTempData.Contains("PING") && !sTempData.Contains("PRIVMSG"))
                         {
@@ -212,7 +224,20 @@ namespace TwitchIRC
                     {
                         if (sTempData.Contains("WHISPER"))
                         {
+                            //:sirtucx!sirtucx@sirtucx.tmi.twitch.tv WHISPER tucxbot :Hello
+
                             Console.WriteLine("Someone has whispered us!");
+                            string sUsername = GetUsername(sTempData);
+                            string sMessage = GetMessage(sTempData);
+
+                            m_ChatInputArgs.Sender = sUsername;
+                            m_ChatInputArgs.Message = sMessage;
+                            m_ChatInputArgs.Target = Username;
+
+                            if (OnWhisperInput != null)
+                            {
+                                OnWhisperInput(this, m_ChatInputArgs);
+                            }
                         }
                         else if (sTempData.Contains("PING") && !sTempData.Contains("WHISPER"))
                         {
@@ -240,6 +265,38 @@ namespace TwitchIRC
             {
                 m_ChannelIRC.Write("PART #" + sChannel + "\n");
                 //Console.WriteLine("Tucxbot has left " + sChannel + "\'s channel!");
+            }
+        }
+        public void SendMessage(string sChannel, string sMessage)
+        {
+            if (m_ChannelIRC.Initialized)
+            {
+                m_ChannelIRC.Write("PRIVMSG #" + sChannel + " :" + sMessage);
+
+                m_ChatOutputArgs.Target = sChannel;
+                m_ChatOutputArgs.Message = sMessage;
+                m_ChatOutputArgs.Sender = Username;
+
+                if (OnChannelOutput != null)
+                {
+                    OnChannelOutput(this, m_ChatOutputArgs);
+                }
+            }
+        }
+        public void SendWhisper(string sUsername, string sMessage)
+        {
+            if (m_WhisperIRC.Initialized)
+            {
+                m_WhisperIRC.Write("PRIVMSG #jtv :/w " + sUsername + " " + sMessage);
+
+                m_ChatOutputArgs.Target = sUsername;
+                m_ChatOutputArgs.Message = sMessage;
+                m_ChatOutputArgs.Sender = Username;
+
+                if (OnWhisperOutput != null)
+                {
+                    OnWhisperOutput(this, m_ChatOutputArgs);
+                }
             }
         }
 
@@ -271,6 +328,12 @@ namespace TwitchIRC
         private string GetMessage(string sRawData)
         {
             int iStart = sRawData.IndexOf('#');
+
+            if (iStart == -1)
+            {
+                iStart = sRawData.IndexOf("WHISPER");
+            }
+
             iStart = sRawData.IndexOf(':', iStart) + 1;
             string sMessage = sRawData.Substring(iStart, sRawData.Length - iStart);
             return sMessage;

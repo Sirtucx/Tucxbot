@@ -33,10 +33,7 @@
             this.tBoxJoin = new System.Windows.Forms.TextBox();
             this.tBoxLeave = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.tTBoxWhispers = new System.Windows.Forms.RichTextBox();
-            this.rTBoxChannels = new System.Windows.Forms.RichTextBox();
+            this.rTBoxChat = new System.Windows.Forms.RichTextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.rTBoxEvents = new System.Windows.Forms.RichTextBox();
             this.groupBox1.SuspendLayout();
@@ -81,52 +78,22 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.tTBoxWhispers);
-            this.groupBox1.Controls.Add(this.rTBoxChannels);
+            this.groupBox1.Controls.Add(this.rTBoxChat);
             this.groupBox1.Location = new System.Drawing.Point(14, 180);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(307, 223);
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Chat Boxes";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(162, 20);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(51, 13);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Whispers";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 20);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(46, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Channel";
-            // 
-            // tTBoxWhispers
-            // 
-            this.tTBoxWhispers.Location = new System.Drawing.Point(162, 37);
-            this.tTBoxWhispers.Name = "tTBoxWhispers";
-            this.tTBoxWhispers.ReadOnly = true;
-            this.tTBoxWhispers.Size = new System.Drawing.Size(139, 180);
-            this.tTBoxWhispers.TabIndex = 1;
-            this.tTBoxWhispers.Text = "";
+            this.groupBox1.Text = "Chat";
             // 
             // rTBoxChannels
             // 
-            this.rTBoxChannels.Location = new System.Drawing.Point(7, 37);
-            this.rTBoxChannels.Name = "rTBoxChannels";
-            this.rTBoxChannels.ReadOnly = true;
-            this.rTBoxChannels.Size = new System.Drawing.Size(139, 180);
-            this.rTBoxChannels.TabIndex = 0;
-            this.rTBoxChannels.Text = "";
+            this.rTBoxChat.Location = new System.Drawing.Point(7, 19);
+            this.rTBoxChat.Name = "rTBoxChannels";
+            this.rTBoxChat.ReadOnly = true;
+            this.rTBoxChat.Size = new System.Drawing.Size(288, 198);
+            this.rTBoxChat.TabIndex = 0;
+            this.rTBoxChat.Text = "";
             // 
             // groupBox2
             // 
@@ -162,7 +129,6 @@
             this.Text = "Form1";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -176,10 +142,7 @@
         private System.Windows.Forms.TextBox tBoxJoin;
         private System.Windows.Forms.TextBox tBoxLeave;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.RichTextBox tTBoxWhispers;
-        private System.Windows.Forms.RichTextBox rTBoxChannels;
+        private System.Windows.Forms.RichTextBox rTBoxChat;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.RichTextBox rTBoxEvents;
     }

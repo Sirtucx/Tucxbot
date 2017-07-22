@@ -22,6 +22,8 @@ namespace TucxbotForm
             m_sJoinedChannels = new List<string>();
             m_TwitchInstance = Twitch.Instance;
             m_TwitchInstance.OnChannelIRCConnected += OnChannelIRCConnected;
+            m_TwitchInstance.OnChannelInput += OnChannelInput;
+            m_TwitchInstance.OnWhisperInput += OnWhisperInput;
             m_TwitchInstance.OnChannelPart += OnChannelPart;
             m_TwitchInstance.OnChannelEnter += OnChannelEnter;
             m_TwitchInstance.StartConnection();
@@ -36,7 +38,6 @@ namespace TucxbotForm
             }
             btnJoin.Enabled = true;
         }
-
         private void OnChannelEnter(object sender, ChannelGateInteractionEventArgs e)
         {
             if (rTBoxEvents.InvokeRequired)
@@ -55,9 +56,39 @@ namespace TucxbotForm
             }
             rTBoxEvents.AppendText(e.Username + " has left " + e.Target + "\'s channel!\n");
         }
+        private void OnChannelInput(object sender, ChatInputEventArgs e)
+        {
+            if (rTBoxChat.InvokeRequired)
+            {
+                rTBoxChat.Invoke(new Action(delegate { OnChannelInput(sender, e); }));
+                return;
+            }
+
+            rTBoxChat.AppendText("#" + e.Target + "|(" + e.Sender + "): " + e.Message + "\n");
+        }
+        private void OnWhisperInput(object sender, ChatInputEventArgs e)
+        {
+            if (rTBoxChat.InvokeRequired)
+            {
+                rTBoxChat.Invoke(new Action(delegate { OnWhisperInput(sender, e); }));
+                return;
+            }
+
+            rTBoxChat.AppendText(e.Sender + ": " + e.Message + "\n");
+        }
+
+
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            foreach(string channel in m_sJoinedChannels)
+            {
+                m_TwitchInstance.LeaveChannel(channel);
+            }
+            m_TwitchInstance.OnChannelInput -= OnChannelInput;
+            m_TwitchInstance.OnWhisperInput -= OnWhisperInput;
+            m_TwitchInstance.OnChannelPart -= OnChannelPart;
+            m_TwitchInstance.OnChannelEnter -= OnChannelEnter;
             m_TwitchInstance.OnChannelIRCConnected -= OnChannelIRCConnected;
             m_TwitchInstance.CloseConnection();
         }
