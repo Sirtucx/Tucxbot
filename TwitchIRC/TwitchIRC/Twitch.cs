@@ -22,12 +22,16 @@ namespace TwitchIRC
         }
 
         public IRCConnection m_ChannelIRC, m_WhisperIRC;
+        public event EventHandler<ChannelGateInteractionEventArgs> OnChannelEnter, OnChannelPart;
+        public Action OnChannelIRCConnected;
 
+        private ChannelGateInteractionEventArgs m_ChannelInteractionArgs;
         private bool m_bRunning;
         private Settings m_Settings;
 
         private Twitch()
         {
+            m_ChannelInteractionArgs = new ChannelGateInteractionEventArgs();
             m_bRunning = true;
             string sSettingsPath = Directory.GetCurrentDirectory() + "/Data/Settings.json";
             if (File.Exists(sSettingsPath))
@@ -46,9 +50,7 @@ namespace TwitchIRC
                                 if (m_Settings != null)
                                 {
                                     m_ChannelIRC = new IRCConnection("irc.twitch.tv", 6667, "iso8859-1", m_Settings.Username, m_Settings.OAuth, ChannelThread);
-                                    m_ChannelIRC.Start();
                                     m_WhisperIRC = new IRCConnection("irc.chat.twitch.tv", 6667, "iso8859-1", m_Settings.Username, m_Settings.OAuth, WhisperThread);
-                                    m_WhisperIRC.Start();
                                 }
                             }
                         }
@@ -65,10 +67,10 @@ namespace TwitchIRC
                 Console.WriteLine("Error: Required File Settings.json is missing from the Data folder. Please re-add this file here: " + sSettingsPath + " to continue!");
             }
         }
-
         private void ChannelThread()
         {
             m_ChannelIRC.Write("CAP REQ :twitch.tv/membership");
+            m_ChannelIRC.Write("CAP REQ :twitch.tv/commands");
             string sTempData = "";
 
             while (m_bRunning && ((sTempData = m_ChannelIRC.Read()) != null))
@@ -83,6 +85,10 @@ namespace TwitchIRC
                         {
                             Console.WriteLine("Initialized Channel IRC Connection!");
                             m_ChannelIRC.Initialized = true;
+                            if (OnChannelIRCConnected != null)
+                            {
+                                OnChannelIRCConnected();
+                            }
                         }
                     }
                     else
@@ -90,24 +96,73 @@ namespace TwitchIRC
                         if (sTempData.Contains("End of /NAMES list") && !sTempData.Contains("PRIVMSG"))
                         {
                             Console.WriteLine("Tucxbot has joined a channel!");
-                            m_ChannelIRC.Write("PRIVMSG #sirtucx :Hello World MrDestructoid");
+                            //m_ChannelIRC.Write("PRIVMSG #sirtucx :Hello World MrDestructoid");
                         }
                         else if (sTempData.Contains("tmi.twitch.tv PART #") && !sTempData.Contains("PRIVMSG"))
                         {
-                            // Tucxbot has left the channel
+                            //:nightbot!nightbot@nightbot.tmi.twitch.tv PART #sirtucx
+                            string sUsername = GetUsername(sTempData);
+                            string sChannel = GetChannel(sTempData);
+                            Console.WriteLine("{0} has left {1}\'s Channel", sUsername, sChannel);
+
+                            m_ChannelInteractionArgs.Joining = false;
+                            m_ChannelInteractionArgs.Target = sChannel;
+                            m_ChannelInteractionArgs.Username = sUsername;
+
+                            if (OnChannelPart != null)
+                            {
+                                OnChannelPart(this, m_ChannelInteractionArgs);
+                            }
+                        }
+                        else if (sTempData.Contains("tmi.twitch.tv JOIN #") && !sTempData.Contains("PRIVMSG"))
+                        {
+                            //:nightbot!nightbot@nightbot.tmi.twitch.tv JOIN #sirtucx
+                            string sUsername = GetUsername(sTempData);
+                            string sChannel = GetChannel(sTempData);
+                            Console.WriteLine("{0} has joined {1}\'s Channel", sUsername, sChannel);
+
+                            m_ChannelInteractionArgs.Joining = true;
+                            m_ChannelInteractionArgs.Target = sChannel;
+                            m_ChannelInteractionArgs.Username = sUsername;
+
+                            if (OnChannelEnter != null)
+                            {
+                                OnChannelEnter(this, m_ChannelInteractionArgs);
+                            }
+                        }
+                        else if (sTempData.Contains(m_Settings.Username + " =") && !sTempData.Contains("PRIVMSG"))
+                        {
+                            if (GetUsername(sTempData) == m_Settings.Username)
+                            {
+                                //:tucxbot.tmi.twitch.tv 353 tucxbot = #edemonster :matthewots lilmsqueenie carter4239 itsviikings tallpauldoll jackyb0i ndnl01 righand bunnydreams yunghotdawgwater jakel0809 dr_leeroy victordeigaard darkver666 razvan099 darkwhiskas arrow_46 afro_domo14 lotec25 dopestxrealzz ndnvdub dhgcarnage thepolockexpress mrfurteypunts roaringsmurf spacyyy doofyst cmayhem187 psz_ricky lolloki actabunnichoochoo__ rageogoblin thankphil cbmav 2600atari bluespanda1 stobi32 gunm4n27
+                                string sRawUserList = GetMessage(sTempData);
+                                string[] sUserList = sRawUserList.Split(' ');
+
+                                if (sUserList.Length > 0)
+                                {
+                                    string sChannel = GetChannel(sTempData);
+                                    foreach (string s in sUserList)
+                                    {
+                                        Console.WriteLine("{0} is already in the channel!", s);
+
+                                        m_ChannelInteractionArgs.Joining = true;
+                                        m_ChannelInteractionArgs.Target = sChannel;
+                                        m_ChannelInteractionArgs.Username = s;
+
+                                        if (OnChannelEnter != null)
+                                        {
+                                            OnChannelEnter(this, m_ChannelInteractionArgs);
+                                        }
+                                    }
+                                }
+                            }
                         }
                         else if (sTempData.Contains("PRIVMSG"))
                         {
                             //:sirtucx!sirtucx@sirtucx.tmi.twitch.tv PRIVMSG #sirtucx :What ??
-                            string sUsername = sTempData.Substring(1, sTempData.IndexOf('!') - 1);
-
-                            int iStart = sTempData.IndexOf('#') + 1;
-                            int iEnd = sTempData.IndexOf(':', iStart) - 1;
-                            string sChannel = sTempData.Substring(iStart, iEnd - iStart);
-
-                            iStart = iEnd + 1;
-                            iEnd = sTempData.Length;
-                            string sMessage = sTempData.Substring(iStart, iEnd - iStart);
+                            string sUsername = GetUsername(sTempData);
+                            string sChannel = GetChannel(sTempData);
+                            string sMessage = GetMessage(sTempData);
 
                             Console.WriteLine("User -> {0}|Channel -> {1}|Message -> {2}", sUsername, sChannel, sMessage);
                         }
@@ -165,7 +220,7 @@ namespace TwitchIRC
             if (m_ChannelIRC.Initialized)
             {
                 m_ChannelIRC.Write("JOIN #" + sChannel + "\n");
-                Console.WriteLine("Tucxbot is attempting to join " + sChannel + "\'s channel!");
+                //Console.WriteLine("Tucxbot is attempting to join " + sChannel + "\'s channel!");
             }
         }
         public void LeaveChannel(string sChannel)
@@ -173,10 +228,48 @@ namespace TwitchIRC
             if (m_ChannelIRC.Initialized)
             {
                 m_ChannelIRC.Write("PART #" + sChannel + "\n");
-                Console.WriteLine("Tucxbot has left " + sChannel + "\'s channel!");
+                //Console.WriteLine("Tucxbot has left " + sChannel + "\'s channel!");
             }
         }
 
+        private string GetUsername(string sRawData)
+        {
+            int iStart = 1;
+            int iEnd = sRawData.IndexOf('!', iStart);
+            if (iEnd == -1)
+            {
+                iEnd = sRawData.IndexOf('.');
+            }
+
+            return sRawData.Substring(1, iEnd - iStart);
+        }
+
+        private string GetChannel(string sRawData)
+        {
+            int iStart = sRawData.IndexOf('#') + 1;
+            int iEnd = sRawData.IndexOf(' ', iStart);
+
+            if (iEnd == -1)
+            {
+                iEnd = sRawData.Length;
+            }
+
+            string sChannel = sRawData.Substring(iStart, iEnd - iStart);
+            return sChannel;
+        }
+        private string GetMessage(string sRawData)
+        {
+            int iStart = sRawData.IndexOf('#');
+            iStart = sRawData.IndexOf(':', iStart) + 1;
+            string sMessage = sRawData.Substring(iStart, sRawData.Length - iStart);
+            return sMessage;
+        }
+        
+        public void StartConnection()
+        {
+            m_ChannelIRC.Start();
+            m_WhisperIRC.Start();
+        }
         public void CloseConnection()
         {
             m_WhisperIRC.CloseConnection();
