@@ -154,7 +154,20 @@ namespace TucxbotForm
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            foreach(string channel in m_sJoinedChannels)
+            foreach(IChannelInputMod icim in m_ChannelInputMods)
+            {
+                icim.Shutdown();
+            }
+            foreach (IChannelJoinMod icjm in m_ChannelJoinMods)
+            {
+                icjm.Shutdown();
+            }
+            foreach (IWhisperInputMod iwim in m_WhisperInputMods)
+            {
+                iwim.Shutdown();
+            }
+
+            foreach (string channel in m_sJoinedChannels)
             {
                 m_TwitchInstance.LeaveChannel(channel);
             }
