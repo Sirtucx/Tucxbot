@@ -62,7 +62,11 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Intro Music\IntroSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
