@@ -9,5 +9,6 @@ namespace TwitchIRC
     public interface IWhisperInputMod
     {
         void ProcessMessage(string sUsername, string sMessage);
+        void Shutdown();
     }
 }

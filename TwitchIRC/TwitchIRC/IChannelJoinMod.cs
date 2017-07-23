@@ -9,5 +9,6 @@ namespace TwitchIRC
     public interface IChannelJoinMod
     {
         void ProcessJoin(string sChannel);
+        void Shutdown();
     }
 }

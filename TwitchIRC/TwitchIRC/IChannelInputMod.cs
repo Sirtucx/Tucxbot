@@ -9,5 +9,6 @@ namespace TwitchIRC
     public interface IChannelInputMod
     {
         void ProcessMessage(string sChannel, string sUsername, string sMessage);
+        void Shutdown();
     }
 }
