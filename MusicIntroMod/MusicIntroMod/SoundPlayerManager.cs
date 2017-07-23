@@ -101,6 +101,7 @@ namespace MusicIntroMod
                             string sQueuedUsername = m_sUserQueue.Dequeue();
                             m_WMPlayer.URL = m_UserSoundPaths[sQueuedUsername];
                             m_sUsersPlayed.Add(sQueuedUsername);
+                            m_WMPlayer.controls.play();
                         }
                     }
                 }
