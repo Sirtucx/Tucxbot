@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TwitchIRC
 {
-    public class ChatInputEventArgs
+    public class ChatInputEventArgs : EventArgs
     {
         public string Target;
         public string Message;
