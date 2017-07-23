@@ -30,7 +30,11 @@ namespace MusicIntroMod
         {
             PlaySound(sUsername);
         }
-
+        public void Shutdown()
+        {
+            m_sUserQueue.Clear();
+            m_UserSoundPaths.Clear();
+        }
         private void LoadUsers()
         {
             string sMusicPath = Environment.CurrentDirectory + "/Intro Music/IntroSettings.json";
