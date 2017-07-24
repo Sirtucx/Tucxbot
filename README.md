@@ -1,37 +1,32 @@
-## Welcome to GitHub Pages
+﻿Setting up Tucxbot:
 
-You can use the [editor on GitHub](https://github.com/Sirtucx/Tucxbot/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Requirement:
+Visual Studio 2017 (I am not sure if Newtonsoft.Json is currently supported in 2015, it is not in 2012). Community version is ok.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+- You will need to fill the Settings.json file located in (Project Folder)/TwitchIRC/TwitchIRC/Data/Settings.json with the following:
+	1. Twitch bot's name
+	2. Twitch bot's OAuth key [including the "oauth:"]. You can it here: [Link](https://twitchapps.com/tmi/) 
 
-### Markdown
+- Upon filling the Settings.json, you will need to compile the Twitch IRC project to generate the TwitchIRC.dll
+- Now open the TwitchForm project and build the project, generating the exe.
+- Upon generating the exe, move the TwitchIRC.dll & Data folder [located (Project Folder)/TwitchIRC/TwitchIRC/bin/Debug] and move it to the exe's folder [(Project Folder)/TucxbotForm/TucxbotForm/bin/Debug]
+- Now you should be able to run TwitchForm, either through Visual Studio or through the exe.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Notes:
+If there are any issues building the project make sure the following is added as a reference:
+TwitchIRC:
+- Newtonsoft.JSON (ie. JSON.Net) [Right click References -> Manage NuGet Packages]
 
-```markdown
-Syntax highlighted code block
+TwitchForm:
+- Newtonsoft.JSON
+- TwitchIRC.dll (You will have to browse for this)
 
-# Header 1
-## Header 2
-### Header 3
 
-- Bulleted
-- List
+Setting up Mods:
+- Create a Folder called Mods in the folder containing the TwitchForm exe
+- Place any DLLs from the separate projects in the folder.
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Sirtucx/Tucxbot/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Notes:
+- The Mod projects cannot reference TwitchForm or it will be a cyclical reference. However it must reference TwitchIRC.
+- Mods must inherit from any of the interfaces in the TwitchIRC project (ie. IChannelInputMod, IWhisperInputMod, IChannelInputMod, etc)
+- It is recommended your projects be a Class Library (.NET) DO NOT USE Class Library (Standard)
