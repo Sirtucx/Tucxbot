@@ -8,7 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace TwitchIRC
+namespace TwitchIRC_TCP
 {
     public class IRCConnection
     {
@@ -46,7 +46,6 @@ namespace TwitchIRC
         private Thread m_ClientThread;                  // Thread to handle all of the reading
         private string m_sUsername, m_sOAuthKey;        // Username & OAuth Key
         private bool m_bInitialized;                    // Whether we have a successful connection
-        private bool m_bAbort;
 
         public IRCConnection(string sIRCServer, int iPortNumber, string sEncoding, string sUsername, string sOAuthKey, TwitchClientThread threadFunction)
         {
@@ -60,44 +59,49 @@ namespace TwitchIRC
             m_sUsername = sUsername;
             m_sOAuthKey = sOAuthKey;
             Initialized = false;
-            m_bAbort = false;
         }
 
         public void Write(string sMessage)
         {
-            if (!m_bAbort)
-            {
-                Output.WriteLine(sMessage);
-                Output.Flush();
-            }
+            Output.WriteLine(sMessage);
+            Output.Flush();
         }
         public string Read()
         {
-            if (!m_bAbort)
-            {
-                return Input.ReadLine();
-            }
-            return null;
+            return Input.ReadLine();
         }
 
-        public void Start()
+        public bool Start()
         {
-            Console.WriteLine("IRCConnection starting thread: " + m_ClientThread.Name);
-            m_ClientThread.Start();
-
+            if (!m_ClientThread.IsAlive)
+            {
+                Console.WriteLine("IRCConnection starting thread: " + m_ClientThread.Name);
+                m_ClientThread.Start();
+                StartConnection();
+                return true;
+            }
+            return false;
+        }
+        public void StartConnection()
+        {
+            Console.WriteLine("Connecting to Twitch");
             Write("USER " + m_sUsername + "tmi twitch :" + m_sUsername);
             Write("PASS " + m_sOAuthKey);
             Write("NICK " + m_sUsername.ToLower());
         }
         public void CloseConnection()
         {
-            m_bAbort = true;
+            Console.WriteLine("Disconnecting from Twitch");
             Write("QUIT\n");
+        }
+
+        public void Close()
+        {
             Output.Close();
             Input.Close();
             m_ClientNetworkStream.Close();
             m_TCPClient.Close();
-            m_ClientThread.Abort();
         }
+
     }
 }

@@ -18,6 +18,7 @@ If there are any issues building the project make sure the following is added as
 
 ### TwitchIRC:
 - Newtonsoft.JSON (ie. JSON.Net) [Right click References -> Manage NuGet Packages]
+- WebSocketSharp  [Right click References -> Manage NuGet Packages, select "WebSocketSharp-NonPreRelease"]
 
 ### TwitchForm:
 - Newtonsoft.JSON
