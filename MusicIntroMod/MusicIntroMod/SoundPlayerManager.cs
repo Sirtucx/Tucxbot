@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TwitchIRC;
 using WMPLib;
 using System.IO;
 using Newtonsoft.Json;
+using TwitchIRC_TCP;
+using Twitch_Websocket;
+using Twitch_Websocket.Mod_Interfaces;
 
 namespace MusicIntroMod
 {
-    class SoundPlayerManager : IChannelInputMod
+    class SoundPlayerManager : IChatMessageMod //IChannelInputMod
     {
         private Dictionary<string, string> m_UserSoundPaths;
         private List<string> m_sUsersPlayed;
@@ -26,9 +28,13 @@ namespace MusicIntroMod
             m_WMPlayer = new WindowsMediaPlayer();
             LoadUsers();
         }
-        public void ProcessMessage(string sChannel, string sUsername, string sMessage)
+        //public void ProcessMessage(string sChannel, string sUsername, string sMessage)
+        //{
+        //    PlaySound(sUsername);
+        //}
+        public void Process(ChatMessage chatMessage)
         {
-            PlaySound(sUsername);
+            PlaySound(chatMessage.Username);
         }
         public void Shutdown()
         {

@@ -66,6 +66,9 @@
     <Compile Include="Twitch Websocket\Event Handlers\OnSubscriberEventArgs.cs" />
     <Compile Include="Twitch Websocket\Event Handlers\OnWhisperMessageReceivedEventArgs.cs" />
     <Compile Include="Twitch Websocket\Containers\UserNotice.cs" />
+    <Compile Include="Twitch Websocket\Mod Interfaces\IChatMessageMod.cs" />
+    <Compile Include="Twitch Websocket\Mod Interfaces\IOnSubscriberMod.cs" />
+    <Compile Include="Twitch Websocket\Mod Interfaces\IWhisperMessageMod.cs" />
     <Compile Include="Twitch Websocket\TwitchClient.cs" />
     <Compile Include="Twitch Websocket\Containers\WhisperMessage.cs" />
   </ItemGroup>
