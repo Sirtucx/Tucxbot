@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TwitchIRC
+namespace TwitchIRC_TCP
 {
-    public interface IWhisperInputMod
+    public interface IChannelJoinMod
     {
-        void ProcessMessage(string sUsername, string sMessage);
+        void ProcessJoin(string sChannel);
         void Shutdown();
     }
 }

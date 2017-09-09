@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TwitchIRC
+namespace TwitchIRC_TCP
 {
     class Settings
     {
