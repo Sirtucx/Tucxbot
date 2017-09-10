@@ -281,5 +281,14 @@
 
             #endregion
         }
+
+        public void SendChatMessage(string sChannel, string sMessage)
+        {
+            m_Client.Send(IRCHelper.Privmsg(sChannel, sMessage));
+        }
+        public void SendWhisperMessage(string sUsername, string sMessage)
+        {
+            m_Client.Send(IRCHelper.Whisper(sUsername, sMessage));
+        }
     }
 }
