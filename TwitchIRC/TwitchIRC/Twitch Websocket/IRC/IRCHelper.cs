@@ -58,6 +58,10 @@ namespace Twitch_Websocket
         {
             return $"PRIVMSG #{sChannel} :{sMessage}";
         }
+        public static string Whisper(string sUsername, string sMessage)
+        {
+            return $"PRIVMSG #jtv :/w {sUsername} {sMessage}";
+        }
         public static string Notice(string sChannel, string sMessage)
         {
             return $"NOTICE #{sChannel} :{sMessage}";
