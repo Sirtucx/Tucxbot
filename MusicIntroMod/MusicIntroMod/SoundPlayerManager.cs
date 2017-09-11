@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WMPLib;
 using System.IO;
 using Newtonsoft.Json;
-using TwitchIRC_TCP;
 using Twitch_Websocket;
 using Twitch_Websocket.Mod_Interfaces;
 
@@ -61,7 +57,7 @@ namespace MusicIntroMod
                                 {
                                     foreach (User user in m_IntroSettings.UserData)
                                     {
-                                        m_UserSoundPaths.Add(user.Username, Environment.CurrentDirectory + "/Intro Music/" + user.FileName);
+                                        m_UserSoundPaths.Add(user.Username, user.FileName);
                                     }
                                 }
                             }

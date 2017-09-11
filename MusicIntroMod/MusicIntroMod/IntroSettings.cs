@@ -6,13 +6,23 @@ using System.Threading.Tasks;
 
 namespace MusicIntroMod
 {
-    class IntroSettings
+    public class IntroSettings
     {
         public List<User> UserData;
+        public IntroSettings()
+        {
+            UserData = new List<User>();
+        }
     }
-    class User
+    public class User
     {
         public string Username;
         public string FileName;
+
+        public User (string sUsername, string sFileName)
+        {
+            Username = sUsername;
+            FileName = sFileName;
+        }
     }
 }

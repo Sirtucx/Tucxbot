@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicIntroMod", "MusicIntroMod\MusicIntroMod.csproj", "{91BB00F3-22AB-4FBB-8E69-7B4FB0E712EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicIntroEditor", "MusicIntroEditor\MusicIntroEditor.csproj", "{407867A5-134C-4C8A-92F9-5AE57341F073}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{91BB00F3-22AB-4FBB-8E69-7B4FB0E712EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91BB00F3-22AB-4FBB-8E69-7B4FB0E712EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91BB00F3-22AB-4FBB-8E69-7B4FB0E712EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{407867A5-134C-4C8A-92F9-5AE57341F073}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{407867A5-134C-4C8A-92F9-5AE57341F073}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{407867A5-134C-4C8A-92F9-5AE57341F073}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{407867A5-134C-4C8A-92F9-5AE57341F073}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
