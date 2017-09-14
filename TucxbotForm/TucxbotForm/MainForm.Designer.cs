@@ -44,26 +44,28 @@
             this.tcpCBoxChannels = new System.Windows.Forms.ComboBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.versionTab = new System.Windows.Forms.TabControl();
-            this.tcpPage = new System.Windows.Forms.TabPage();
-            this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.tcpBtnDisconnect = new System.Windows.Forms.Button();
-            this.tcp_BtnConnect = new System.Windows.Forms.Button();
             this.websocketPage = new System.Windows.Forms.TabPage();
-            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.webJoinLeaveGroup = new System.Windows.Forms.GroupBox();
+            this.webBtnLeave = new System.Windows.Forms.Button();
+            this.webCBoxJoinedChannels = new System.Windows.Forms.ComboBox();
             this.webBtnJoin = new System.Windows.Forms.Button();
             this.webTBoxJoin = new System.Windows.Forms.TextBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.webBtnConnect = new System.Windows.Forms.Button();
+            this.tcpPage = new System.Windows.Forms.TabPage();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.tcpBtnDisconnect = new System.Windows.Forms.Button();
+            this.tcp_BtnConnect = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.versionTab.SuspendLayout();
+            this.websocketPage.SuspendLayout();
+            this.webJoinLeaveGroup.SuspendLayout();
+            this.groupBox6.SuspendLayout();
             this.tcpPage.SuspendLayout();
             this.groupBox5.SuspendLayout();
-            this.websocketPage.SuspendLayout();
-            this.groupBox7.SuspendLayout();
-            this.groupBox6.SuspendLayout();
             this.SuspendLayout();
             // 
             // tcpBtnJoin
@@ -237,13 +239,100 @@
             // 
             // versionTab
             // 
-            this.versionTab.Controls.Add(this.tcpPage);
             this.versionTab.Controls.Add(this.websocketPage);
+            this.versionTab.Controls.Add(this.tcpPage);
             this.versionTab.Location = new System.Drawing.Point(7, 13);
             this.versionTab.Name = "versionTab";
             this.versionTab.SelectedIndex = 0;
             this.versionTab.Size = new System.Drawing.Size(531, 504);
             this.versionTab.TabIndex = 8;
+            // 
+            // websocketPage
+            // 
+            this.websocketPage.Controls.Add(this.webJoinLeaveGroup);
+            this.websocketPage.Controls.Add(this.groupBox6);
+            this.websocketPage.Location = new System.Drawing.Point(4, 22);
+            this.websocketPage.Name = "websocketPage";
+            this.websocketPage.Padding = new System.Windows.Forms.Padding(3);
+            this.websocketPage.Size = new System.Drawing.Size(523, 478);
+            this.websocketPage.TabIndex = 1;
+            this.websocketPage.Text = "WebSocket";
+            this.websocketPage.UseVisualStyleBackColor = true;
+            // 
+            // webJoinLeaveGroup
+            // 
+            this.webJoinLeaveGroup.Controls.Add(this.webBtnLeave);
+            this.webJoinLeaveGroup.Controls.Add(this.webCBoxJoinedChannels);
+            this.webJoinLeaveGroup.Controls.Add(this.webBtnJoin);
+            this.webJoinLeaveGroup.Controls.Add(this.webTBoxJoin);
+            this.webJoinLeaveGroup.Location = new System.Drawing.Point(226, 7);
+            this.webJoinLeaveGroup.Name = "webJoinLeaveGroup";
+            this.webJoinLeaveGroup.Size = new System.Drawing.Size(291, 80);
+            this.webJoinLeaveGroup.TabIndex = 1;
+            this.webJoinLeaveGroup.TabStop = false;
+            this.webJoinLeaveGroup.Text = "Join/Leave Channels";
+            this.webJoinLeaveGroup.Visible = false;
+            // 
+            // webBtnLeave
+            // 
+            this.webBtnLeave.Location = new System.Drawing.Point(145, 45);
+            this.webBtnLeave.Name = "webBtnLeave";
+            this.webBtnLeave.Size = new System.Drawing.Size(119, 21);
+            this.webBtnLeave.TabIndex = 6;
+            this.webBtnLeave.Text = "Leave";
+            this.webBtnLeave.UseVisualStyleBackColor = true;
+            this.webBtnLeave.Visible = false;
+            this.webBtnLeave.Click += new System.EventHandler(this.Web_BtnLeave_Click);
+            // 
+            // webCBoxJoinedChannels
+            // 
+            this.webCBoxJoinedChannels.FormattingEnabled = true;
+            this.webCBoxJoinedChannels.Location = new System.Drawing.Point(6, 45);
+            this.webCBoxJoinedChannels.Name = "webCBoxJoinedChannels";
+            this.webCBoxJoinedChannels.Size = new System.Drawing.Size(121, 21);
+            this.webCBoxJoinedChannels.TabIndex = 5;
+            this.webCBoxJoinedChannels.Visible = false;
+            // 
+            // webBtnJoin
+            // 
+            this.webBtnJoin.Location = new System.Drawing.Point(145, 18);
+            this.webBtnJoin.Name = "webBtnJoin";
+            this.webBtnJoin.Size = new System.Drawing.Size(119, 20);
+            this.webBtnJoin.TabIndex = 3;
+            this.webBtnJoin.TabStop = false;
+            this.webBtnJoin.Text = "Join";
+            this.webBtnJoin.UseVisualStyleBackColor = true;
+            this.webBtnJoin.Click += new System.EventHandler(this.Web_BtnJoin_Click);
+            // 
+            // webTBoxJoin
+            // 
+            this.webTBoxJoin.Location = new System.Drawing.Point(6, 19);
+            this.webTBoxJoin.Name = "webTBoxJoin";
+            this.webTBoxJoin.Size = new System.Drawing.Size(121, 20);
+            this.webTBoxJoin.TabIndex = 4;
+            this.webTBoxJoin.Text = "Channel to join";
+            this.webTBoxJoin.Enter += new System.EventHandler(this.Web_TBoxJoin_Enter);
+            this.webTBoxJoin.Leave += new System.EventHandler(this.Web_TBoxJoin_Leave);
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.webBtnConnect);
+            this.groupBox6.Location = new System.Drawing.Point(7, 7);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(213, 80);
+            this.groupBox6.TabIndex = 0;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "Connection to Twitch";
+            // 
+            // webBtnConnect
+            // 
+            this.webBtnConnect.Location = new System.Drawing.Point(6, 19);
+            this.webBtnConnect.Name = "webBtnConnect";
+            this.webBtnConnect.Size = new System.Drawing.Size(201, 20);
+            this.webBtnConnect.TabIndex = 0;
+            this.webBtnConnect.Text = "Connect";
+            this.webBtnConnect.UseVisualStyleBackColor = true;
+            this.webBtnConnect.Click += new System.EventHandler(this.Web_BtnConnect_Click);
             // 
             // tcpPage
             // 
@@ -293,71 +382,6 @@
             this.tcp_BtnConnect.UseVisualStyleBackColor = true;
             this.tcp_BtnConnect.Click += new System.EventHandler(this.TCP_BtnConnect_Click);
             // 
-            // websocketPage
-            // 
-            this.websocketPage.Controls.Add(this.groupBox7);
-            this.websocketPage.Controls.Add(this.groupBox6);
-            this.websocketPage.Location = new System.Drawing.Point(4, 22);
-            this.websocketPage.Name = "websocketPage";
-            this.websocketPage.Padding = new System.Windows.Forms.Padding(3);
-            this.websocketPage.Size = new System.Drawing.Size(523, 478);
-            this.websocketPage.TabIndex = 1;
-            this.websocketPage.Text = "WebSocket";
-            this.websocketPage.UseVisualStyleBackColor = true;
-            // 
-            // groupBox7
-            // 
-            this.groupBox7.Controls.Add(this.webBtnJoin);
-            this.groupBox7.Controls.Add(this.webTBoxJoin);
-            this.groupBox7.Location = new System.Drawing.Point(7, 63);
-            this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(149, 80);
-            this.groupBox7.TabIndex = 1;
-            this.groupBox7.TabStop = false;
-            this.groupBox7.Text = "Join";
-            // 
-            // webBtnJoin
-            // 
-            this.webBtnJoin.Enabled = false;
-            this.webBtnJoin.Location = new System.Drawing.Point(6, 45);
-            this.webBtnJoin.Name = "webBtnJoin";
-            this.webBtnJoin.Size = new System.Drawing.Size(133, 23);
-            this.webBtnJoin.TabIndex = 3;
-            this.webBtnJoin.TabStop = false;
-            this.webBtnJoin.Text = "Join";
-            this.webBtnJoin.UseVisualStyleBackColor = true;
-            this.webBtnJoin.Click += new System.EventHandler(this.Web_BtnJoin_Click);
-            // 
-            // webTBoxJoin
-            // 
-            this.webTBoxJoin.Location = new System.Drawing.Point(6, 19);
-            this.webTBoxJoin.Name = "webTBoxJoin";
-            this.webTBoxJoin.Size = new System.Drawing.Size(133, 20);
-            this.webTBoxJoin.TabIndex = 4;
-            this.webTBoxJoin.Text = "Channel to join";
-            this.webTBoxJoin.Enter += new System.EventHandler(this.Web_TBoxJoin_Enter);
-            this.webTBoxJoin.Leave += new System.EventHandler(this.Web_TBoxJoin_Leave);
-            // 
-            // groupBox6
-            // 
-            this.groupBox6.Controls.Add(this.webBtnConnect);
-            this.groupBox6.Location = new System.Drawing.Point(7, 7);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(149, 50);
-            this.groupBox6.TabIndex = 0;
-            this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "Connect";
-            // 
-            // webBtnConnect
-            // 
-            this.webBtnConnect.Location = new System.Drawing.Point(6, 19);
-            this.webBtnConnect.Name = "webBtnConnect";
-            this.webBtnConnect.Size = new System.Drawing.Size(133, 23);
-            this.webBtnConnect.TabIndex = 0;
-            this.webBtnConnect.Text = "Connect";
-            this.webBtnConnect.UseVisualStyleBackColor = true;
-            this.webBtnConnect.Click += new System.EventHandler(this.Web_BtnConnect_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -374,12 +398,12 @@
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.versionTab.ResumeLayout(false);
+            this.websocketPage.ResumeLayout(false);
+            this.webJoinLeaveGroup.ResumeLayout(false);
+            this.webJoinLeaveGroup.PerformLayout();
+            this.groupBox6.ResumeLayout(false);
             this.tcpPage.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
-            this.websocketPage.ResumeLayout(false);
-            this.groupBox7.ResumeLayout(false);
-            this.groupBox7.PerformLayout();
-            this.groupBox6.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -411,7 +435,9 @@
         private System.Windows.Forms.Button webBtnConnect;
         private System.Windows.Forms.Button webBtnJoin;
         private System.Windows.Forms.TextBox webTBoxJoin;
-        private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.GroupBox webJoinLeaveGroup;
+        private System.Windows.Forms.Button webBtnLeave;
+        private System.Windows.Forms.ComboBox webCBoxJoinedChannels;
     }
 }
 
