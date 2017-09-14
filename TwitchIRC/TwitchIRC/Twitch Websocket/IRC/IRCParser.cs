@@ -53,6 +53,10 @@ namespace Twitch_Websocket
                                 return "WHISPER";
                             }
                         }
+                        else if (sMessageSplit[2] == TwitchClient.GetInstance().Credentials.TwitchUsername)
+                        {
+                            return TwitchClient.GetInstance().Credentials.TwitchUsername;
+                        }
                     }
                 }
             }

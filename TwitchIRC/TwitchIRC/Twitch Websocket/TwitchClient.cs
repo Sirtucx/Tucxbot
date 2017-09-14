@@ -31,6 +31,8 @@
         public event EventHandler<OnSubscriberEventArgs> OnSubscriberEvent;
         public event EventHandler<OnChatMessageReceivedEventArgs> OnChatMessageReceived;
         public event EventHandler<OnWhisperMessageReceivedEventArgs> OnWhisperMessageReceived;
+        public event EventHandler<OnUserLeaveEventArgs> OnUserLeaveEvent;
+        public event EventHandler<OnBotJoinedChannelEventArgs> OnBotJoinedChannelEvent;
         #endregion Events
 
         private WebSocket m_Client;
@@ -131,7 +133,6 @@
             sChannel = sChannel.ToLower();
             if (!m_sChannelsJoined.Contains(sChannel))
             {
-                m_sChannelsJoined.Add(sChannel);
                 m_Client.Send(IRCHelper.Join(sChannel));
             }
         }
@@ -140,14 +141,15 @@
             sChannel = sChannel.ToLower();
             if (m_sChannelsJoined.Contains(sChannel))
             {
-                m_sChannelsJoined.Remove(sChannel);
                 m_Client.Send(IRCHelper.Part(sChannel));
             }
         }
 
+
+        
         private void ParseResponse(string sIRCRaw)
         {
-            //Console.WriteLine(sIRCRaw);
+            Console.WriteLine(sIRCRaw);
             string sMessageType;
 
             foreach (string sChannel in m_sChannelsJoined)
@@ -193,7 +195,12 @@
                     #region PART
                     else if (sMessageType == "PART")
                     {
-                        // TODO: USER LEFT CHANNEL
+                        // USER LEFT CHANNEL
+                        //:tucxbot!tucxbot@tucxbot.tmi.twitch.tv PART #sirtucx
+                        string sUsername = sIRCRaw.Substring(1, sIRCRaw.IndexOf('!') - 1);
+                        OnUserLeaveEvent?.Invoke(this, new OnUserLeaveEventArgs(sUsername, sChannel));
+                        m_sChannelsJoined.Remove(sChannel);
+                        return;
                     }
                     #endregion PART
                     #region MODE
@@ -259,7 +266,7 @@
                     #endregion CLEARCHAT
                 }
             }
-
+ 
             #region Non-Channel Messages
             #region PING
             if (sIRCRaw.Contains(IRCHelper.Ping))
@@ -269,7 +276,8 @@
             #endregion PING
 
             sMessageType = IRCParser.GetMessageType(sIRCRaw, "");
-            
+            Console.WriteLine($"Other Message Type: {sMessageType}");
+
             #region WHISPER
             if (sMessageType == "WHISPER")
             {
@@ -278,6 +286,30 @@
                 OnWhisperMessageReceived?.Invoke(this, whisperEvent);
             }
             #endregion WHISPER
+
+            #region Bot joined channel
+            if (sMessageType == Credentials.TwitchUsername)
+            {
+                if (sIRCRaw.Contains($"{Credentials.TwitchUsername}.tmi.twitch.tv"))
+                {
+                    string sUserConfirmation = sIRCRaw.Substring(1, sIRCRaw.IndexOf('.') - 1);
+                    if (sUserConfirmation == Credentials.TwitchUsername)
+                    {
+                        string sMessageContents = sIRCRaw.Substring(sIRCRaw.IndexOf(':', 1) + 1, sIRCRaw.Length - (sIRCRaw.IndexOf(':', 1) + 1));
+
+                        #region On Bot Joined Channel
+                        //:tucxbot.tmi.twitch.tv 366 tucxbot #sirtucx :End of /NAMES list
+                        if (sMessageContents == "End of /NAMES list")
+                        {
+                            string sChannel = sIRCRaw.Substring(sIRCRaw.IndexOf('#') + 1, sIRCRaw.IndexOf(" :") - ((sIRCRaw.IndexOf('#') + 1)));
+                            OnBotJoinedChannelEvent?.Invoke(this, new OnBotJoinedChannelEventArgs(sChannel));
+                            m_sChannelsJoined.Add(sChannel);
+                        }
+                        #endregion On Bot Joined Channel
+                    }
+                }
+            }
+            #endregion Bot joined channel
 
             #endregion
         }

@@ -22,9 +22,9 @@ namespace TucxbotForm
         private int m_iPreviousIndex;
         private List<string> m_sPreviousChatMessages;
         private List<string> m_sJoinedChannels;
-        //private List<IChannelInputMod> m_ChannelInputMods;
-        //private List<IWhisperInputMod> m_WhisperInputMods;
-        //private List<IChannelJoinMod> m_ChannelJoinMods;
+        private List<IChannelInputMod> m_ChannelInputMods;
+        private List<IWhisperInputMod> m_WhisperInputMods;
+        private List<IChannelJoinMod> m_ChannelJoinMods;
         private List<IChatMessageMod> m_ChannelMessageMods;
         private List<IWhisperMessageMod> m_WhisperMessageMods;
         private List<IOnSubscriberMod> m_OnSubscriberMods;
@@ -41,6 +41,12 @@ namespace TucxbotForm
                 m_TwitchClient.OnTwitchConnected += OnTwitchClientConnected;
             }
         }
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            CloseTCP();
+            ShutdownMods();
+            CloseWeb();
+        }
 
         private void LoadMods()
         {
@@ -53,34 +59,37 @@ namespace TucxbotForm
                 Assembly assembly = Assembly.LoadFile(file);
                 foreach(Type type in assembly.GetTypes())
                 {
-                    //if (typeof(IChannelInputMod).IsAssignableFrom(type))
-                    //{
-                    //    if (m_ChannelInputMods == null)
-                    //    {
-                    //        m_ChannelInputMods = new List<IChannelInputMod>();
-                    //    }
-                    //    m_ChannelInputMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChannelInputMod);
-                    //    Console.WriteLine("Loading Channel Input Mod: {0} to the project!", file);
-                    //}
-                    //else if (typeof(IWhisperInputMod).IsAssignableFrom(type))
-                    //{
-                    //    if (m_WhisperInputMods == null)
-                    //    {
-                    //        m_WhisperInputMods = new List<IWhisperInputMod>();
-                    //    }
-                    //    m_WhisperInputMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IWhisperInputMod);
-                    //    Console.WriteLine("Loading Whisper Input Mod: {0} to the project!", file);
-                    //}
-                    //else if (typeof(IChannelJoinMod).IsAssignableFrom(type))
-                    //{
-                    //    if (m_ChannelJoinMods == null)
-                    //    {
-                    //        m_ChannelJoinMods = new List<IChannelJoinMod>();
-                    //    }
-                    //    m_ChannelJoinMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChannelJoinMod);
-                    //    Console.WriteLine("Loading Channel Join Mod: {0} to the project!", file);
-                    //}
-
+                    #region TCP Mods
+                    if (typeof(IChannelInputMod).IsAssignableFrom(type))
+                    {
+                        if (m_ChannelInputMods == null)
+                        {
+                            m_ChannelInputMods = new List<IChannelInputMod>();
+                        }
+                        m_ChannelInputMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChannelInputMod);
+                        Console.WriteLine("Loading Channel Input Mod: {0} to the project!", file);
+                    }
+                    else if (typeof(IWhisperInputMod).IsAssignableFrom(type))
+                    {
+                        if (m_WhisperInputMods == null)
+                        {
+                            m_WhisperInputMods = new List<IWhisperInputMod>();
+                        }
+                        m_WhisperInputMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IWhisperInputMod);
+                        Console.WriteLine("Loading Whisper Input Mod: {0} to the project!", file);
+                    }
+                    else if (typeof(IChannelJoinMod).IsAssignableFrom(type))
+                    {
+                        if (m_ChannelJoinMods == null)
+                        {
+                            m_ChannelJoinMods = new List<IChannelJoinMod>();
+                        }
+                        m_ChannelJoinMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChannelJoinMod);
+                        Console.WriteLine("Loading Channel Join Mod: {0} to the project!", file);
+                    }
+                    #endregion TCP Mods
+                    
+                    #region WebSocket Mods
                     if (typeof(IChatMessageMod).IsAssignableFrom(type))
                     {
                         if (m_ChannelMessageMods == null)
@@ -108,10 +117,57 @@ namespace TucxbotForm
                         m_OnSubscriberMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IOnSubscriberMod);
                         Console.WriteLine("Loading OnSubscriber Mod: {0} to the project!", file);
                     }
+                    #endregion WebSocket Mods
+                }
+            }
+        }
+        private void ShutdownMods()
+        {
+            if (m_ChannelInputMods != null)
+            {
+                foreach (IChannelInputMod icim in m_ChannelInputMods)
+                {
+                    icim.Shutdown();
+                }
+            }
+            if (m_ChannelJoinMods != null)
+            {
+                foreach (IChannelJoinMod icjm in m_ChannelJoinMods)
+                {
+                    icjm.Shutdown();
+                }
+            }
+            if (m_WhisperInputMods != null)
+            {
+                foreach (IWhisperInputMod iwim in m_WhisperInputMods)
+                {
+                    iwim.Shutdown();
+                }
+            }
+            if (m_ChannelMessageMods != null)
+            {
+                foreach (IChatMessageMod mod in m_ChannelMessageMods)
+                {
+                    mod.Shutdown();
+                }
+            }
+            if (m_WhisperMessageMods != null)
+            {
+                foreach (IChatMessageMod mod in m_WhisperMessageMods)
+                {
+                    mod.Shutdown();
+                }
+            }
+            if (m_OnSubscriberMods != null)
+            {
+                foreach (IChatMessageMod mod in m_OnSubscriberMods)
+                {
+                    mod.Shutdown();
                 }
             }
         }
 
+        #region TCP
         #region TCP Twitch Form Events
         private void OnChannelIRCConnected()
         {
@@ -352,7 +408,14 @@ namespace TucxbotForm
             m_TwitchInstance.OnChannelIRCConnected -= OnChannelIRCConnected;
             m_TwitchInstance.CloseConnection();
         }
+        private void CloseTCP()
+        {
+            DisconnectTCP();
+            m_TwitchInstance.Close();
+        }
+        #endregion TCP
 
+        #region WebSocket
         private void ConnectWeb()
         {
             m_TwitchClient?.Connect();
@@ -361,19 +424,8 @@ namespace TucxbotForm
         {
             webBtnConnect.Enabled = true;
             webBtnJoin.Enabled = false;
+            UnRegisterWebEvents();
             m_TwitchClient?.Disconnect();
-        }
-
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            CloseTCP();
-            ShutdownMods();
-            CloseWeb();
-        }
-        private void CloseTCP()
-        {
-            DisconnectTCP();
-            m_TwitchInstance.Close();
         }
         private void CloseWeb()
         {
@@ -383,60 +435,59 @@ namespace TucxbotForm
             }
             DisconnectWeb();
         }
-        
-        private void ShutdownMods()
-        {
-            //if (m_ChannelInputMods != null)
-            //{
-            //    foreach (IChannelInputMod icim in m_ChannelInputMods)
-            //    {
-            //        icim.Shutdown();
-            //    }
-            //}
-            //if (m_ChannelJoinMods != null)
-            //{
-            //    foreach (IChannelJoinMod icjm in m_ChannelJoinMods)
-            //    {
-            //        icjm.Shutdown();
-            //    }
-            //}
-            //if (m_WhisperInputMods != null)
-            //{
-            //    foreach (IWhisperInputMod iwim in m_WhisperInputMods)
-            //    {
-            //        iwim.Shutdown();
-            //    }
-            //}
-            if (m_ChannelMessageMods != null)
-            {
-                foreach (IChatMessageMod mod in m_ChannelMessageMods)
-                {
-                    mod.Shutdown();
-                }
-            }
-            if (m_WhisperMessageMods  != null)
-            {
-                foreach (IChatMessageMod mod in m_WhisperMessageMods)
-                {
-                    mod.Shutdown();
-                }
-            }
-            if (m_OnSubscriberMods != null)
-            {
-                foreach (IChatMessageMod mod in m_OnSubscriberMods)
-                {
-                    mod.Shutdown();
-                }
-            }
-        }
 
         #region Web Twitch Form Events
         private void OnTwitchClientConnected()
         {
+            RegisterWebEvents();
+            webJoinLeaveGroup.Visible = true;
+        }
+
+        private void RegisterWebEvents()
+        {
             m_TwitchClient.OnWhisperMessageReceived += TwitchClient_OnWhisperMessageReceived;
             m_TwitchClient.OnChatMessageReceived += TwitchClient_OnChatMessageReceived;
-            webBtnConnect.Enabled = false;
-            webBtnJoin.Enabled = true;
+            m_TwitchClient.OnBotJoinedChannelEvent += TwitchClient_OnBotJoinedChannelEvent;
+            m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
+        }
+
+        
+
+        private void UnRegisterWebEvents()
+        {
+            m_TwitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
+            m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
+            m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
+        }
+
+        private void TwitchClient_OnBotJoinedChannelEvent(object sender, OnBotJoinedChannelEventArgs e)
+        {
+            if (!webCBoxJoinedChannels.Items.Contains(e.Channel))
+            {
+                if (webCBoxJoinedChannels.InvokeRequired)
+                {
+                    webCBoxJoinedChannels.Invoke(new Action(delegate { TwitchClient_OnBotJoinedChannelEvent(sender, e); }));
+                    return;
+                }
+                webCBoxJoinedChannels.Items.Add(e.Channel);
+                webCBoxJoinedChannels.SelectedIndex = 0;
+                webTBoxJoin.Clear();
+                webCBoxJoinedChannels.Visible = true;
+                webBtnLeave.Visible = true;
+            }
+        }
+        private void TwitchClient_OnUserLeaveEvent(object sender, OnUserLeaveEventArgs e)
+        {
+            if (webCBoxJoinedChannels.InvokeRequired)
+            {
+                webCBoxJoinedChannels.Invoke(new Action(delegate { TwitchClient_OnUserLeaveEvent(sender, e); }));
+                return;
+            }
+
+            webCBoxJoinedChannels.Items.Remove(e.Channel);
+
+            webCBoxJoinedChannels.Visible = webCBoxJoinedChannels.Items.Count > 0;
+            webBtnLeave.Visible = webCBoxJoinedChannels.Items.Count > 0;
         }
 
         private void TwitchClient_OnChatMessageReceived(object sender, OnChatMessageReceivedEventArgs e)
@@ -484,8 +535,16 @@ namespace TucxbotForm
         {
             webTBoxJoin.Clear();
         }
+        private void Web_BtnLeave_Click(object sender, EventArgs e)
+        {
+            if (webCBoxJoinedChannels.Items.Count > 0)
+            {
+                m_TwitchClient.LeaveChannel(webCBoxJoinedChannels.Items[webCBoxJoinedChannels.SelectedIndex].ToString());
+            }
+        }
         #endregion region Web Form Events
 
-        
+        #endregion WebSocket
+
     }
 }
