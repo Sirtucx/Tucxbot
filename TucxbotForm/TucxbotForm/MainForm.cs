@@ -12,6 +12,7 @@ using System.Reflection;
 using System.IO;
 using Twitch_Websocket;
 using Twitch_Websocket.Mod_Interfaces;
+using Newtonsoft.Json;
 
 namespace TucxbotForm
 {
@@ -34,7 +35,34 @@ namespace TucxbotForm
             InitializeComponent();
             LoadMods();
             m_TwitchInstance = Twitch.Instance;
-            m_TwitchClient = TwitchClient.GetInstance(new IRCCredentials("tucxbot", "oauth:lpk476czmern37c0xwqhdyrdde7kc2"));
+
+            LoginData twitchClientCredentials = LoadCredentials();
+            if (twitchClientCredentials == null)
+            {
+                webConnectionGroup.Visible = false;
+                DialogResult warningDialog;
+                string sMessage = $"You are either missing the required Settings.json file or it has not been filled in correctly. It has been created {Environment.CurrentDirectory}/Data/Settings.json\nPlease fill in Settings.json and reload the program!";
+                warningDialog = MessageBox.Show(sMessage, "Tucxbot WebSocket Error");
+
+                if (!File.Exists($"{Environment.CurrentDirectory}/Data/Settings.json"))
+                {
+                    twitchClientCredentials = new LoginData();
+                    string sJSONContent = JsonConvert.SerializeObject(twitchClientCredentials, Formatting.Indented);
+
+                    using (StreamWriter writer = new StreamWriter($"{Environment.CurrentDirectory}/Data/Settings.json", false))
+                    {
+                        writer.Write(sJSONContent);
+                        writer.Flush();
+                        writer.Close();
+                    }
+                }
+            }
+            else
+            {
+                m_TwitchClient = TwitchClient.GetInstance(new IRCCredentials(twitchClientCredentials.Username, twitchClientCredentials.OAuth));
+            }
+            
+            m_sPreviousChatMessages = new List<string>();
 
             if (m_TwitchClient != null)
             {
@@ -390,7 +418,6 @@ namespace TucxbotForm
         {
             tcpBtnJoin.Enabled = false;
             m_sJoinedChannels = new List<string>();
-            m_sPreviousChatMessages = new List<string>();
             m_TwitchInstance.OnChannelIRCConnected += OnChannelIRCConnected;
             m_TwitchInstance.OnChannelInput += OnChannelInput;
             m_TwitchInstance.OnWhisperInput += OnWhisperInput;
@@ -416,6 +443,24 @@ namespace TucxbotForm
         #endregion TCP
 
         #region WebSocket
+
+        private LoginData LoadCredentials()
+        {
+            if (File.Exists($"{Environment.CurrentDirectory}/Data/Settings.json"))
+            {
+                StreamReader sr = new StreamReader($"{Environment.CurrentDirectory}/Data/Settings.json");
+                string sContent = sr.ReadToEnd();
+
+                LoginData loginData = JsonConvert.DeserializeObject<LoginData>(sContent);
+
+                if (string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.OAuth))
+                {
+                    return null;
+                }
+                return loginData;
+            }
+            return null;
+        }
         private void ConnectWeb()
         {
             m_TwitchClient?.Connect();
@@ -450,14 +495,14 @@ namespace TucxbotForm
             m_TwitchClient.OnBotJoinedChannelEvent += TwitchClient_OnBotJoinedChannelEvent;
             m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
         }
-
-        
-
         private void UnRegisterWebEvents()
         {
-            m_TwitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
-            m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
-            m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
+            if (m_TwitchClient != null)
+            {
+                m_TwitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
+                m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
+                m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
+            }
         }
 
         private void TwitchClient_OnBotJoinedChannelEvent(object sender, OnBotJoinedChannelEventArgs e)
@@ -474,6 +519,10 @@ namespace TucxbotForm
                 webTBoxJoin.Clear();
                 webCBoxJoinedChannels.Visible = true;
                 webBtnLeave.Visible = true;
+
+                webChatGroup.Visible = true;
+                webCBoxPublicChannels.Items.Add(e.Channel);
+                webCBoxPublicChannels.SelectedIndex = 0;
             }
         }
         private void TwitchClient_OnUserLeaveEvent(object sender, OnUserLeaveEventArgs e)
@@ -484,10 +533,16 @@ namespace TucxbotForm
                 return;
             }
 
-            webCBoxJoinedChannels.Items.Remove(e.Channel);
+            if (e.Username == m_TwitchClient.Credentials.TwitchUsername)
+            {
+                webCBoxJoinedChannels.Items.Remove(e.Channel);
 
-            webCBoxJoinedChannels.Visible = webCBoxJoinedChannels.Items.Count > 0;
-            webBtnLeave.Visible = webCBoxJoinedChannels.Items.Count > 0;
+                webCBoxJoinedChannels.Visible = webCBoxJoinedChannels.Items.Count > 0;
+                webBtnLeave.Visible = webCBoxJoinedChannels.Items.Count > 0;
+
+                webCBoxPublicChannels.Items.Remove(e.Channel);
+                webChatGroup.Visible = webCBoxJoinedChannels.Items.Count > 0;
+            }
         }
 
         private void TwitchClient_OnChatMessageReceived(object sender, OnChatMessageReceivedEventArgs e)
@@ -542,9 +597,47 @@ namespace TucxbotForm
                 m_TwitchClient.LeaveChannel(webCBoxJoinedChannels.Items[webCBoxJoinedChannels.SelectedIndex].ToString());
             }
         }
+        private void Web_RBtnPublicChat_CheckedChanged(object sender, EventArgs e)
+        {
+            webCBoxPublicChannels.Visible = true;
+            webTBoxWhisper.Visible = false;
+        }
+        private void Web_RBtnWhisper_CheckedChanged(object sender, EventArgs e)
+        {
+            webCBoxPublicChannels.Visible = false;
+            webTBoxWhisper.Visible = true;
+        }
+        private void Web_RTBoxTwitchOutput_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(webRTBoxTwitchOutput.Text))
+            {
+                string sMessage = webRTBoxTwitchOutput.Text.Trim();
+                m_sPreviousChatMessages.Add(sMessage);
+                webRTBoxTwitchOutput.Clear();
+
+                string sTarget = (webRBtnPublicChat.Checked ? webCBoxPublicChannels.SelectedItem.ToString() : webTBoxWhisper.Text);
+
+                if (tcpRBtnChat.Checked)
+                {
+                    m_TwitchClient.SendChatMessage(sTarget, sMessage);
+                    tcpRTBoxChat.AppendText($"#{sTarget}|({m_TwitchClient.Credentials.TwitchUsername}): {sMessage}\n");
+                }
+                else
+                {
+                    m_TwitchClient.SendWhisperMessage(sTarget, sMessage);
+                    tcpRTBoxChat.AppendText($"{m_TwitchClient.Credentials.TwitchUsername} : {sMessage}\n");
+                }
+            }
+        }
+
+        private void Web_RTBoxTwitchOutput_KeyUp(object sender, KeyEventArgs e)
+        {
+
+        }
         #endregion region Web Form Events
 
         #endregion WebSocket
+
 
     }
 }

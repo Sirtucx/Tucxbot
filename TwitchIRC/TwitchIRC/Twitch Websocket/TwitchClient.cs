@@ -276,7 +276,7 @@
             #endregion PING
 
             sMessageType = IRCParser.GetMessageType(sIRCRaw, "");
-            Console.WriteLine($"Other Message Type: {sMessageType}");
+            //Console.WriteLine($"Other Message Type: {sMessageType}");
 
             #region WHISPER
             if (sMessageType == "WHISPER")

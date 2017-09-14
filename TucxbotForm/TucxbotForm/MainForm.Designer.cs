@@ -45,12 +45,19 @@
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.versionTab = new System.Windows.Forms.TabControl();
             this.websocketPage = new System.Windows.Forms.TabPage();
+            this.webChatGroup = new System.Windows.Forms.GroupBox();
+            this.webTBoxWhisper = new System.Windows.Forms.TextBox();
+            this.webCBoxPublicChannels = new System.Windows.Forms.ComboBox();
+            this.webRBtnWhisper = new System.Windows.Forms.RadioButton();
+            this.webRBtnPublicChat = new System.Windows.Forms.RadioButton();
+            this.webRTBoxTwitchOutput = new System.Windows.Forms.RichTextBox();
+            this.webRTBoxTwitchInput = new System.Windows.Forms.RichTextBox();
             this.webJoinLeaveGroup = new System.Windows.Forms.GroupBox();
             this.webBtnLeave = new System.Windows.Forms.Button();
             this.webCBoxJoinedChannels = new System.Windows.Forms.ComboBox();
             this.webBtnJoin = new System.Windows.Forms.Button();
             this.webTBoxJoin = new System.Windows.Forms.TextBox();
-            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.webConnectionGroup = new System.Windows.Forms.GroupBox();
             this.webBtnConnect = new System.Windows.Forms.Button();
             this.tcpPage = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
@@ -62,8 +69,9 @@
             this.groupBox4.SuspendLayout();
             this.versionTab.SuspendLayout();
             this.websocketPage.SuspendLayout();
+            this.webChatGroup.SuspendLayout();
             this.webJoinLeaveGroup.SuspendLayout();
-            this.groupBox6.SuspendLayout();
+            this.webConnectionGroup.SuspendLayout();
             this.tcpPage.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.SuspendLayout();
@@ -249,8 +257,9 @@
             // 
             // websocketPage
             // 
+            this.websocketPage.Controls.Add(this.webChatGroup);
             this.websocketPage.Controls.Add(this.webJoinLeaveGroup);
-            this.websocketPage.Controls.Add(this.groupBox6);
+            this.websocketPage.Controls.Add(this.webConnectionGroup);
             this.websocketPage.Location = new System.Drawing.Point(4, 22);
             this.websocketPage.Name = "websocketPage";
             this.websocketPage.Padding = new System.Windows.Forms.Padding(3);
@@ -258,6 +267,80 @@
             this.websocketPage.TabIndex = 1;
             this.websocketPage.Text = "WebSocket";
             this.websocketPage.UseVisualStyleBackColor = true;
+            // 
+            // webChatGroup
+            // 
+            this.webChatGroup.Controls.Add(this.webTBoxWhisper);
+            this.webChatGroup.Controls.Add(this.webCBoxPublicChannels);
+            this.webChatGroup.Controls.Add(this.webRBtnWhisper);
+            this.webChatGroup.Controls.Add(this.webRBtnPublicChat);
+            this.webChatGroup.Controls.Add(this.webRTBoxTwitchOutput);
+            this.webChatGroup.Controls.Add(this.webRTBoxTwitchInput);
+            this.webChatGroup.Location = new System.Drawing.Point(7, 94);
+            this.webChatGroup.Name = "webChatGroup";
+            this.webChatGroup.Size = new System.Drawing.Size(207, 378);
+            this.webChatGroup.TabIndex = 2;
+            this.webChatGroup.TabStop = false;
+            this.webChatGroup.Text = "Twitch Chat";
+            this.webChatGroup.Visible = false;
+            // 
+            // webTBoxWhisper
+            // 
+            this.webTBoxWhisper.Location = new System.Drawing.Point(99, 49);
+            this.webTBoxWhisper.Name = "webTBoxWhisper";
+            this.webTBoxWhisper.Size = new System.Drawing.Size(102, 20);
+            this.webTBoxWhisper.TabIndex = 5;
+            this.webTBoxWhisper.Visible = false;
+            // 
+            // webCBoxPublicChannels
+            // 
+            this.webCBoxPublicChannels.FormattingEnabled = true;
+            this.webCBoxPublicChannels.Location = new System.Drawing.Point(99, 18);
+            this.webCBoxPublicChannels.Name = "webCBoxPublicChannels";
+            this.webCBoxPublicChannels.Size = new System.Drawing.Size(102, 21);
+            this.webCBoxPublicChannels.TabIndex = 4;
+            // 
+            // webRBtnWhisper
+            // 
+            this.webRBtnWhisper.AutoSize = true;
+            this.webRBtnWhisper.Location = new System.Drawing.Point(7, 51);
+            this.webRBtnWhisper.Name = "webRBtnWhisper";
+            this.webRBtnWhisper.Size = new System.Drawing.Size(64, 17);
+            this.webRBtnWhisper.TabIndex = 3;
+            this.webRBtnWhisper.Text = "Whisper";
+            this.webRBtnWhisper.UseVisualStyleBackColor = true;
+            this.webRBtnWhisper.CheckedChanged += new System.EventHandler(this.Web_RBtnWhisper_CheckedChanged);
+            // 
+            // webRBtnPublicChat
+            // 
+            this.webRBtnPublicChat.AutoSize = true;
+            this.webRBtnPublicChat.Checked = true;
+            this.webRBtnPublicChat.Location = new System.Drawing.Point(7, 20);
+            this.webRBtnPublicChat.Name = "webRBtnPublicChat";
+            this.webRBtnPublicChat.Size = new System.Drawing.Size(79, 17);
+            this.webRBtnPublicChat.TabIndex = 2;
+            this.webRBtnPublicChat.TabStop = true;
+            this.webRBtnPublicChat.Text = "Public Chat";
+            this.webRBtnPublicChat.UseVisualStyleBackColor = true;
+            this.webRBtnPublicChat.CheckedChanged += new System.EventHandler(this.Web_RBtnPublicChat_CheckedChanged);
+            // 
+            // webRTBoxTwitchOutput
+            // 
+            this.webRTBoxTwitchOutput.Location = new System.Drawing.Point(6, 83);
+            this.webRTBoxTwitchOutput.Name = "webRTBoxTwitchOutput";
+            this.webRTBoxTwitchOutput.Size = new System.Drawing.Size(195, 54);
+            this.webRTBoxTwitchOutput.TabIndex = 1;
+            this.webRTBoxTwitchOutput.Text = "";
+            this.webRTBoxTwitchOutput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Web_RTBoxTwitchOutput_KeyPress);
+            this.webRTBoxTwitchOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Web_RTBoxTwitchOutput_KeyUp);
+            // 
+            // webRTBoxTwitchInput
+            // 
+            this.webRTBoxTwitchInput.Location = new System.Drawing.Point(6, 143);
+            this.webRTBoxTwitchInput.Name = "webRTBoxTwitchInput";
+            this.webRTBoxTwitchInput.Size = new System.Drawing.Size(195, 229);
+            this.webRTBoxTwitchInput.TabIndex = 0;
+            this.webRTBoxTwitchInput.Text = "";
             // 
             // webJoinLeaveGroup
             // 
@@ -314,19 +397,19 @@
             this.webTBoxJoin.Enter += new System.EventHandler(this.Web_TBoxJoin_Enter);
             this.webTBoxJoin.Leave += new System.EventHandler(this.Web_TBoxJoin_Leave);
             // 
-            // groupBox6
+            // webConnectionGroup
             // 
-            this.groupBox6.Controls.Add(this.webBtnConnect);
-            this.groupBox6.Location = new System.Drawing.Point(7, 7);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(213, 80);
-            this.groupBox6.TabIndex = 0;
-            this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "Connection to Twitch";
+            this.webConnectionGroup.Controls.Add(this.webBtnConnect);
+            this.webConnectionGroup.Location = new System.Drawing.Point(7, 8);
+            this.webConnectionGroup.Name = "webConnectionGroup";
+            this.webConnectionGroup.Size = new System.Drawing.Size(207, 80);
+            this.webConnectionGroup.TabIndex = 0;
+            this.webConnectionGroup.TabStop = false;
+            this.webConnectionGroup.Text = "Connection to Twitch";
             // 
             // webBtnConnect
             // 
-            this.webBtnConnect.Location = new System.Drawing.Point(6, 19);
+            this.webBtnConnect.Location = new System.Drawing.Point(3, 19);
             this.webBtnConnect.Name = "webBtnConnect";
             this.webBtnConnect.Size = new System.Drawing.Size(201, 20);
             this.webBtnConnect.TabIndex = 0;
@@ -399,9 +482,11 @@
             this.groupBox4.PerformLayout();
             this.versionTab.ResumeLayout(false);
             this.websocketPage.ResumeLayout(false);
+            this.webChatGroup.ResumeLayout(false);
+            this.webChatGroup.PerformLayout();
             this.webJoinLeaveGroup.ResumeLayout(false);
             this.webJoinLeaveGroup.PerformLayout();
-            this.groupBox6.ResumeLayout(false);
+            this.webConnectionGroup.ResumeLayout(false);
             this.tcpPage.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -431,13 +516,20 @@
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.Button tcpBtnDisconnect;
         private System.Windows.Forms.Button tcp_BtnConnect;
-        private System.Windows.Forms.GroupBox groupBox6;
+        private System.Windows.Forms.GroupBox webConnectionGroup;
         private System.Windows.Forms.Button webBtnConnect;
         private System.Windows.Forms.Button webBtnJoin;
         private System.Windows.Forms.TextBox webTBoxJoin;
         private System.Windows.Forms.GroupBox webJoinLeaveGroup;
         private System.Windows.Forms.Button webBtnLeave;
         private System.Windows.Forms.ComboBox webCBoxJoinedChannels;
+        private System.Windows.Forms.GroupBox webChatGroup;
+        private System.Windows.Forms.RichTextBox webRTBoxTwitchOutput;
+        private System.Windows.Forms.RichTextBox webRTBoxTwitchInput;
+        private System.Windows.Forms.TextBox webTBoxWhisper;
+        private System.Windows.Forms.ComboBox webCBoxPublicChannels;
+        private System.Windows.Forms.RadioButton webRBtnWhisper;
+        private System.Windows.Forms.RadioButton webRBtnPublicChat;
     }
 }
 
