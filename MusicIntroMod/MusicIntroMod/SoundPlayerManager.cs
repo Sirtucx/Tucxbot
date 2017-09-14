@@ -57,7 +57,7 @@ namespace MusicIntroMod
                                 {
                                     foreach (User user in m_IntroSettings.UserData)
                                     {
-                                        m_UserSoundPaths.Add(user.Username, user.FileName);
+                                        m_UserSoundPaths.Add(user.Username.ToLower(), user.FileName);
                                     }
                                 }
                             }
