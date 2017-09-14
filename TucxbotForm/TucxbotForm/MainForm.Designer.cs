@@ -338,6 +338,7 @@
             // 
             this.webRTBoxTwitchInput.Location = new System.Drawing.Point(6, 143);
             this.webRTBoxTwitchInput.Name = "webRTBoxTwitchInput";
+            this.webRTBoxTwitchInput.ReadOnly = true;
             this.webRTBoxTwitchInput.Size = new System.Drawing.Size(195, 229);
             this.webRTBoxTwitchInput.TabIndex = 0;
             this.webRTBoxTwitchInput.Text = "";

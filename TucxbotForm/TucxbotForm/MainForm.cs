@@ -547,6 +547,13 @@ namespace TucxbotForm
 
         private void TwitchClient_OnChatMessageReceived(object sender, OnChatMessageReceivedEventArgs e)
         {
+            if (webRTBoxTwitchInput.InvokeRequired)
+            {
+                webRTBoxTwitchInput.Invoke(new Action(delegate { TwitchClient_OnChatMessageReceived(sender, e); }));
+                return;
+            }
+            webRTBoxTwitchInput.Text += $"#{e.ChatMessage.Channel}| {e.ChatMessage.Username}: {e.ChatMessage.Message}\n";
+
             if (m_ChannelMessageMods != null)
             {
                 foreach(IChatMessageMod mod in m_ChannelMessageMods)
@@ -558,6 +565,13 @@ namespace TucxbotForm
         }
         private void TwitchClient_OnWhisperMessageReceived(object sender, OnWhisperMessageReceivedEventArgs e)
         {
+            if (webRTBoxTwitchInput.InvokeRequired)
+            {
+                webRTBoxTwitchInput.Invoke(new Action(delegate { TwitchClient_OnWhisperMessageReceived(sender, e); }));
+                return;
+            }
+            webRTBoxTwitchInput.Text += $"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}\n";
+
             if (m_WhisperMessageMods != null)
             {
                 foreach (IWhisperMessageMod mod in m_WhisperMessageMods)
@@ -611,28 +625,36 @@ namespace TucxbotForm
         {
             if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(webRTBoxTwitchOutput.Text))
             {
-                string sMessage = webRTBoxTwitchOutput.Text.Trim();
+                string sMessage = webRTBoxTwitchOutput.Text.Trim().Replace("\n","");
                 m_sPreviousChatMessages.Add(sMessage);
                 webRTBoxTwitchOutput.Clear();
 
                 string sTarget = (webRBtnPublicChat.Checked ? webCBoxPublicChannels.SelectedItem.ToString() : webTBoxWhisper.Text);
 
-                if (tcpRBtnChat.Checked)
+                if (webRBtnPublicChat.Checked)
                 {
                     m_TwitchClient.SendChatMessage(sTarget, sMessage);
-                    tcpRTBoxChat.AppendText($"#{sTarget}|({m_TwitchClient.Credentials.TwitchUsername}): {sMessage}\n");
+                    webRTBoxTwitchInput.AppendText($"#{sTarget}|({m_TwitchClient.Credentials.TwitchUsername}): {sMessage}\n");
                 }
                 else
                 {
                     m_TwitchClient.SendWhisperMessage(sTarget, sMessage);
-                    tcpRTBoxChat.AppendText($"{m_TwitchClient.Credentials.TwitchUsername} : {sMessage}\n");
+                    webRTBoxTwitchInput.AppendText($"{m_TwitchClient.Credentials.TwitchUsername} : {sMessage}\n");
                 }
+                m_iPreviousIndex = 0;
             }
         }
-
         private void Web_RTBoxTwitchOutput_KeyUp(object sender, KeyEventArgs e)
         {
-
+            if (e.KeyCode == Keys.Up && m_sPreviousChatMessages.Count > 0)
+            {
+                if (m_iPreviousIndex == m_sPreviousChatMessages.Count)
+                {
+                    m_iPreviousIndex -= 1;
+                }
+                webRTBoxTwitchOutput.Text = m_sPreviousChatMessages[m_sPreviousChatMessages.Count - 1 - m_iPreviousIndex];
+                ++m_iPreviousIndex;
+            }
         }
         #endregion region Web Form Events
 
