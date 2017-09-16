@@ -56,6 +56,7 @@
     <Compile Include="Twitch Websocket\Containers\Emote.cs" />
     <Compile Include="Twitch Websocket\Containers\EmoteCollection.cs" />
     <Compile Include="Twitch Websocket\Containers\IRCCredentials.cs" />
+    <Compile Include="Twitch Websocket\Containers\LoginData.cs" />
     <Compile Include="Twitch Websocket\Event Handlers\OnBotJoinedChannelEventArgs.cs" />
     <Compile Include="Twitch Websocket\Event Handlers\OnUserLeaveEventArgs.cs" />
     <Compile Include="Twitch Websocket\IRC\IRCHelper.cs" />

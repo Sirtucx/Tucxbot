@@ -32,8 +32,7 @@
             Raw = sIRCRaw;
 
             // Channel notice was sent in
-            string[] sChannelSplit = sIRCRaw.Split('#');
-            Channel = sChannelSplit[1].Substring(0, sChannelSplit[1].IndexOf(' '));
+            Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("USERNOTICE")) + 1, sIRCRaw.Length - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("USERNOTICE")) + 1));
 
             // Badges
             Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
@@ -70,7 +69,7 @@
                     }
             }
             // Resub Consecutive Months
-            ResubConsecutiveMonths = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "mes-param-months"));
+            ResubConsecutiveMonths = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-months"));
 
             // Sub Plan
             string sSubPlanRaw = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sub-plan");
@@ -143,6 +142,8 @@
                         break;
                     }
             }
+
+            Username = DisplayName;
         }
     }
 }
