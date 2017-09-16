@@ -48,8 +48,7 @@ namespace SubscriberNotificationMod
                 sMessage = $"{sMessage} MrDestructoid and thank you for remaining subscribed for {usernotice.ResubConsecutiveMonths} months! MrDestructoid";
             }
 
-            m_TwitchClient.SendChatMessage("sirtucx"//usernotice.Channel
-                , sMessage);
+            m_TwitchClient.SendChatMessage(usernotice.Channel, sMessage);
         }
         public void Shutdown()
         {
