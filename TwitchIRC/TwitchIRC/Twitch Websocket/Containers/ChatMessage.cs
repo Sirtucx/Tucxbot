@@ -33,9 +33,8 @@ namespace Twitch_Websocket
             Raw = sIRCRaw;
 
             // Channel notice was sent in
-            string[] sChannelSplit = sIRCRaw.Split('#');
-            Channel = sChannelSplit[2].Substring(0, sChannelSplit[2].IndexOf(' '));
-            
+            Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1, sIRCRaw.IndexOf(' ', sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1) - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1));
+
             // Badges
             Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
             // Color

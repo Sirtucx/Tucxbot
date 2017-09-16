@@ -181,14 +181,14 @@ namespace TucxbotForm
             }
             if (m_WhisperMessageMods != null)
             {
-                foreach (IChatMessageMod mod in m_WhisperMessageMods)
+                foreach (IWhisperMessageMod mod in m_WhisperMessageMods)
                 {
                     mod.Shutdown();
                 }
             }
             if (m_OnSubscriberMods != null)
             {
-                foreach (IChatMessageMod mod in m_OnSubscriberMods)
+                foreach (IOnSubscriberMod mod in m_OnSubscriberMods)
                 {
                     mod.Shutdown();
                 }
@@ -494,7 +494,20 @@ namespace TucxbotForm
             m_TwitchClient.OnChatMessageReceived += TwitchClient_OnChatMessageReceived;
             m_TwitchClient.OnBotJoinedChannelEvent += TwitchClient_OnBotJoinedChannelEvent;
             m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
+            m_TwitchClient.OnSubscriberEvent += TwitchClient_OnSubscriberEvent;
         }
+
+        private void TwitchClient_OnSubscriberEvent(object sender, OnSubscriberEventArgs e)
+        {
+            if (m_OnSubscriberMods != null)
+            {
+                foreach (IOnSubscriberMod mod in m_OnSubscriberMods)
+                {
+                    mod.Process(e.UserNotice);
+                }
+            }
+        }
+
         private void UnRegisterWebEvents()
         {
             if (m_TwitchClient != null)
@@ -502,6 +515,7 @@ namespace TucxbotForm
                 m_TwitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
                 m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
                 m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
+                m_TwitchClient.OnSubscriberEvent -= TwitchClient_OnSubscriberEvent;
             }
         }
 
@@ -581,9 +595,12 @@ namespace TucxbotForm
             }
             Console.WriteLine($"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}");
         }
+
+
+
         #endregion Web Twitch Form Events
 
-       #region Web Form Events
+        #region Web Form Events
         private void Web_BtnConnect_Click(object sender, EventArgs e)
         {
             m_TwitchClient?.Connect();
