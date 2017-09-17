@@ -32,7 +32,14 @@
             Raw = sIRCRaw;
 
             // Channel notice was sent in
-            Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("USERNOTICE")) + 1, sIRCRaw.Length - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("USERNOTICE")) + 1));
+            int iStartIndex = sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("USERNOTICE")) + 1;
+            int iLength = sIRCRaw.IndexOf(':', iStartIndex);
+
+            if (iLength == -1)
+            {
+                iLength = sIRCRaw.Length;
+            }
+            Channel = sIRCRaw.Substring(iStartIndex, iLength - iStartIndex);
 
             // Badges
             Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));

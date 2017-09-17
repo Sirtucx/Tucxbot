@@ -145,8 +145,6 @@
             }
         }
 
-
-        
         private void ParseResponse(string sIRCRaw)
         {
             Console.WriteLine(sIRCRaw);
@@ -199,7 +197,11 @@
                         //:tucxbot!tucxbot@tucxbot.tmi.twitch.tv PART #sirtucx
                         string sUsername = sIRCRaw.Substring(1, sIRCRaw.IndexOf('!') - 1);
                         OnUserLeaveEvent?.Invoke(this, new OnUserLeaveEventArgs(sUsername, sChannel));
-                        m_sChannelsJoined.Remove(sChannel);
+
+                        if (sUsername == Credentials.TwitchUsername && m_sChannelsJoined.Contains(sUsername))
+                        {
+                            m_sChannelsJoined.Remove(sChannel);
+                        }
                         return;
                     }
                     #endregion PART
@@ -271,7 +273,7 @@
             #region PING
             if (sIRCRaw.Contains(IRCHelper.Ping))
             {
-                m_Client.Send("PONG");
+                m_Client.Send("PONG :tmi.twitch.tv");
             }
             #endregion PING
 
