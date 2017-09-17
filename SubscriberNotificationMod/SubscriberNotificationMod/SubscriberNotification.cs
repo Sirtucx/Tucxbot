@@ -45,7 +45,7 @@ namespace SubscriberNotificationMod
 
             if (usernotice.ResubConsecutiveMonths > 1)
             {
-                sMessage = $"{sMessage} MrDestructoid and thank you for remaining subscribed for {usernotice.ResubConsecutiveMonths} months! MrDestructoid";
+                sMessage = $"{sMessage} and thank you for remaining subscribed for {usernotice.ResubConsecutiveMonths} months! MrDestructoid";
             }
 
             m_TwitchClient.SendChatMessage(usernotice.Channel, sMessage);
