@@ -10,5 +10,11 @@ namespace Twitch_Websocket
     {
         public string Username;
         public string OAuth;
+
+        public LoginData(string sUsername, string sOAuth)
+        {
+            Username = sUsername;
+            OAuth = sOAuth;
+        }
     }
 }
