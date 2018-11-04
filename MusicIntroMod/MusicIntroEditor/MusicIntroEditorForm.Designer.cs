@@ -40,13 +40,13 @@
             this.tBoxUser = new System.Windows.Forms.TextBox();
             this.tBoxPath = new System.Windows.Forms.TextBox();
             this.groupContents = new System.Windows.Forms.GroupBox();
+            this.btnDelete = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.tBoxExistingPath = new System.Windows.Forms.TextBox();
             this.cBoxUsers = new System.Windows.Forms.ComboBox();
             this.btnSave = new System.Windows.Forms.Button();
             this.rtBoxLog = new System.Windows.Forms.RichTextBox();
-            this.btnDelete = new System.Windows.Forms.Button();
             this.groupGenerate.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupAddUser.SuspendLayout();
@@ -177,6 +177,16 @@
             this.groupContents.Text = "User Data";
             this.groupContents.Visible = false;
             // 
+            // btnDelete
+            // 
+            this.btnDelete.Location = new System.Drawing.Point(12, 71);
+            this.btnDelete.Name = "btnDelete";
+            this.btnDelete.Size = new System.Drawing.Size(415, 23);
+            this.btnDelete.TabIndex = 4;
+            this.btnDelete.Text = "Remove";
+            this.btnDelete.UseVisualStyleBackColor = true;
+            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
+            // 
             // label4
             // 
             this.label4.AutoSize = true;
@@ -205,6 +215,7 @@
             // 
             // cBoxUsers
             // 
+            this.cBoxUsers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cBoxUsers.FormattingEnabled = true;
             this.cBoxUsers.Location = new System.Drawing.Point(12, 43);
             this.cBoxUsers.Name = "cBoxUsers";
@@ -230,16 +241,6 @@
             this.rtBoxLog.Size = new System.Drawing.Size(427, 96);
             this.rtBoxLog.TabIndex = 5;
             this.rtBoxLog.Text = "";
-            // 
-            // btnDelete
-            // 
-            this.btnDelete.Location = new System.Drawing.Point(12, 71);
-            this.btnDelete.Name = "btnDelete";
-            this.btnDelete.Size = new System.Drawing.Size(415, 23);
-            this.btnDelete.TabIndex = 4;
-            this.btnDelete.Text = "Remove";
-            this.btnDelete.UseVisualStyleBackColor = true;
-            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
             // MusicIntroEditorForm
             // 

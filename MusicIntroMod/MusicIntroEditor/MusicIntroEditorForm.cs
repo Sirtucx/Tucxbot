@@ -15,7 +15,6 @@ namespace MusicIntroEditor
 {
     public partial class MusicIntroEditorForm : Form
     {
-        public string m_EndPath = $"{Environment.CurrentDirectory}/../../../../TucxbotForm/TucxbotForm/bin/Debug/Intro Music/";
         private IntroSettings m_LoadedSettings;
         public MusicIntroEditorForm()
         {
@@ -32,29 +31,32 @@ namespace MusicIntroEditor
         private void btnGenerate_Click(object sender, EventArgs e)
         {
             Clear();
-            if (!Directory.Exists(m_EndPath))
-            {
-                Directory.CreateDirectory(m_EndPath);
-            }
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            fileDialog.InitialDirectory = Environment.CurrentDirectory;
+            fileDialog.Filter = "JSON File (*.json)|*.json";
+            fileDialog.FilterIndex = 0;
             
-            StreamWriter writer = new StreamWriter($"{m_EndPath}IntroSettings.json", false);
-
-            m_LoadedSettings = new IntroSettings();
-            string defaultJSON = JsonConvert.SerializeObject(m_LoadedSettings, Formatting.Indented);
-            
-
-            writer.Write(defaultJSON);
-            writer.Flush();
-            writer.Close();
-
-            if (m_LoadedSettings != null)
+            if (fileDialog.ShowDialog() == DialogResult.OK)
             {
-                groupAddUser.Visible = true;
-                groupGenerate.Visible = false;
-                groupContents.Visible = false;
-                cBoxUsers.Items.Clear();
-                tBoxExistingPath.Text = "";
-                Log($"Generated JSON file at {m_EndPath}IntroSettings.json");
+                StreamWriter writer = new StreamWriter(fileDialog.FileName, false);
+
+                m_LoadedSettings = new IntroSettings();
+                string defaultJSON = JsonConvert.SerializeObject(m_LoadedSettings, Formatting.Indented);
+
+
+                writer.Write(defaultJSON);
+                writer.Flush();
+                writer.Close();
+
+                if (m_LoadedSettings != null)
+                {
+                    groupAddUser.Visible = true;
+                    groupGenerate.Visible = false;
+                    groupContents.Visible = false;
+                    cBoxUsers.Items.Clear();
+                    tBoxExistingPath.Text = "";
+                    Log($"Generated JSON file at {fileDialog.FileName}");
+                }
             }
         }
 
@@ -62,10 +64,9 @@ namespace MusicIntroEditor
         {
             Clear();
             OpenFileDialog ofd = new OpenFileDialog();
-
+            ofd.InitialDirectory = Environment.CurrentDirectory;
             ofd.Filter = "JSON Files (*.json)|*.json";
             ofd.FilterIndex = 0;
-            ofd.InitialDirectory = m_EndPath;
             
 
             if (ofd.ShowDialog() == DialogResult.OK)
@@ -76,7 +77,7 @@ namespace MusicIntroEditor
                     string rawJson = reader.ReadToEnd();
 
                     IntroSettings tempSettings = JsonConvert.DeserializeObject<IntroSettings>(rawJson);
-
+                    reader.Close();
                     if (tempSettings != null)
                     {
                         m_LoadedSettings = tempSettings;
@@ -114,7 +115,7 @@ namespace MusicIntroEditor
         private void btnLoadMusic_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            
+            ofd.InitialDirectory = Environment.CurrentDirectory;
             ofd.Filter = "MP3 files (*.mp3)|*.mp3|Windows Audio Files (*.wav)|*.wav";
             ofd.FilterIndex = 0;
 
@@ -179,11 +180,19 @@ namespace MusicIntroEditor
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            StreamWriter writer = new StreamWriter($"{m_EndPath}IntroSettings.json", false);
-            writer.Write(JsonConvert.SerializeObject(m_LoadedSettings));
-            writer.Flush();
-            writer.Close();
-            Log($"Saved Settings ({m_EndPath}IntroSettings.json)");
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            fileDialog.InitialDirectory = Environment.CurrentDirectory;
+            fileDialog.Filter = "JSON File (*.json)|*.json";
+            fileDialog.FilterIndex = 0;
+
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                StreamWriter writer = new StreamWriter(fileDialog.FileName, false);
+                writer.Write(JsonConvert.SerializeObject(m_LoadedSettings));
+                writer.Flush();
+                writer.Close();
+                Log($"Saved Settings ({fileDialog.FileName}");
+            }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
