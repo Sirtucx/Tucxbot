@@ -25,7 +25,7 @@
         }
         #endregion Singleton
 
-        public Action OnTwitchConnected;
+        public Action OnTwitchConnected, OnTwitchLoginFailed;
 
         #region Events
         public event EventHandler<OnSubscriberEventArgs> OnSubscriberEvent;
@@ -72,7 +72,6 @@
         #region Client Connection Functions / Connection Event Handlers
         private void OnClientConnected (object sender, object e)
         {
-            OnTwitchConnected?.Invoke();
             m_Client.Send(IRCHelper.Pass(Credentials.TwitchOAuth));
             m_Client.Send(IRCHelper.Nick(Credentials.TwitchUsername));
             m_Client.Send(IRCHelper.User(Credentials.TwitchUsername, 0));
@@ -97,7 +96,16 @@
         }
         public void Disconnect()
         {
-            Task.Factory.StartNew(() => { m_Client.Close(); });
+            Task.Factory.StartNew(() => 
+            {
+                for(int i = 0; i < m_sChannelsJoined.Count; ++i)
+                {
+                    LeaveChannel(m_sChannelsJoined[i]);
+                }
+                m_Client.Close();
+            });
+            //m_Instance = null;
+            //m_bInitialized = false;
         }
         public void Reconnect()
         {
@@ -198,7 +206,7 @@
                         string sUsername = sIRCRaw.Substring(1, sIRCRaw.IndexOf('!') - 1);
                         OnUserLeaveEvent?.Invoke(this, new OnUserLeaveEventArgs(sUsername, sChannel));
 
-                        if (sUsername == Credentials.TwitchUsername && m_sChannelsJoined.Contains(sUsername))
+                        if (sUsername == Credentials.TwitchUsername && m_sChannelsJoined.Contains(sChannel))
                         {
                             m_sChannelsJoined.Remove(sChannel);
                         }
@@ -245,7 +253,7 @@
                         else if (sIRCRaw.Contains("Your color has been changed."))
                         {
                             // TODO: DETECT COLOR CHANGE
-                        }
+                        } 
                     }
                     #endregion NOTICE
                     #region ROOMSTATE
@@ -312,6 +320,30 @@
                 }
             }
             #endregion Bot joined channel
+
+            #region Bot connected to twitch
+            if (sMessageType == Credentials.TwitchUsername)
+            {
+                if (sIRCRaw.Contains("You are in a maze of twisty passages, all alike."))
+                {
+                    // LOGIN SUCCESSFUL
+                    OnTwitchConnected?.Invoke();
+                }
+            }
+            #endregion Bot connected to twitch
+
+            #region NOTICE
+            if (sMessageType == "NOTICE")
+            {
+                if (sIRCRaw.Contains("Login authentication failed"))
+                {
+                    // LOGIN FAILED
+                    OnTwitchLoginFailed?.Invoke();
+                }
+            }
+            #endregion NOTICE
+
+             
 
             #endregion
         }
