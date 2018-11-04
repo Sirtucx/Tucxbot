@@ -28,509 +28,368 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.tcpBtnJoin = new System.Windows.Forms.Button();
-            this.tcpBtnLeave = new System.Windows.Forms.Button();
-            this.tcpTBoxJoin = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.tcpRTBoxChat = new System.Windows.Forms.RichTextBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.tcpRTBoxEvents = new System.Windows.Forms.RichTextBox();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.tcpTBoxWhisper = new System.Windows.Forms.TextBox();
-            this.tcpCBoxJoinedChannels = new System.Windows.Forms.ComboBox();
-            this.tcpRBtnWhisper = new System.Windows.Forms.RadioButton();
-            this.tcpRBtnChat = new System.Windows.Forms.RadioButton();
-            this.tcpRTBoxChatOutput = new System.Windows.Forms.RichTextBox();
-            this.tcpCBoxChannels = new System.Windows.Forms.ComboBox();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.versionTab = new System.Windows.Forms.TabControl();
             this.websocketPage = new System.Windows.Forms.TabPage();
-            this.webChatGroup = new System.Windows.Forms.GroupBox();
-            this.webTBoxWhisper = new System.Windows.Forms.TextBox();
-            this.webCBoxPublicChannels = new System.Windows.Forms.ComboBox();
-            this.webRBtnWhisper = new System.Windows.Forms.RadioButton();
-            this.webRBtnPublicChat = new System.Windows.Forms.RadioButton();
-            this.webRTBoxTwitchOutput = new System.Windows.Forms.RichTextBox();
-            this.webRTBoxTwitchInput = new System.Windows.Forms.RichTextBox();
-            this.webJoinLeaveGroup = new System.Windows.Forms.GroupBox();
-            this.webBtnLeave = new System.Windows.Forms.Button();
-            this.webCBoxJoinedChannels = new System.Windows.Forms.ComboBox();
-            this.webBtnJoin = new System.Windows.Forms.Button();
-            this.webTBoxJoin = new System.Windows.Forms.TextBox();
-            this.webConnectionGroup = new System.Windows.Forms.GroupBox();
-            this.webBtnConnect = new System.Windows.Forms.Button();
-            this.tcpPage = new System.Windows.Forms.TabPage();
-            this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.tcpBtnDisconnect = new System.Windows.Forms.Button();
-            this.tcp_BtnConnect = new System.Windows.Forms.Button();
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            this.groupBox3.SuspendLayout();
-            this.groupBox4.SuspendLayout();
-            this.versionTab.SuspendLayout();
+            this.m_ModGroup = new System.Windows.Forms.GroupBox();
+            this.m_UnloadModButton = new System.Windows.Forms.Button();
+            this.m_UnloadModCB = new System.Windows.Forms.ComboBox();
+            this.m_LoadModButton = new System.Windows.Forms.Button();
+            this.m_EventGroup = new System.Windows.Forms.GroupBox();
+            this.m_WhisperGroup = new System.Windows.Forms.GroupBox();
+            this.m_WhisperLabel = new System.Windows.Forms.Label();
+            this.m_WhisperInputTB = new System.Windows.Forms.RichTextBox();
+            this.m_WhisperOutputTB = new System.Windows.Forms.RichTextBox();
+            this.m_WhisperUserTB = new System.Windows.Forms.TextBox();
+            this.m_ChannelGroup = new System.Windows.Forms.GroupBox();
+            this.m_ChatChannelLabel = new System.Windows.Forms.Label();
+            this.m_LeaveChannelButton = new System.Windows.Forms.Button();
+            this.m_ChannelMessageSelectCB = new System.Windows.Forms.ComboBox();
+            this.m_JoinChannelButton = new System.Windows.Forms.Button();
+            this.m_ChannelInputTB = new System.Windows.Forms.RichTextBox();
+            this.m_ChannelOutputTB = new System.Windows.Forms.RichTextBox();
+            this.m_ChannelLeaveCB = new System.Windows.Forms.ComboBox();
+            this.m_ChannelJoinTB = new System.Windows.Forms.TextBox();
+            this.m_ConnectionGroup = new System.Windows.Forms.GroupBox();
+            this.m_DisconnectButton = new System.Windows.Forms.Button();
+            this.m_LoginButton = new System.Windows.Forms.Button();
+            this.m_ConnectButton = new System.Windows.Forms.Button();
+            this.versionTab = new System.Windows.Forms.TabControl();
             this.websocketPage.SuspendLayout();
-            this.webChatGroup.SuspendLayout();
-            this.webJoinLeaveGroup.SuspendLayout();
-            this.webConnectionGroup.SuspendLayout();
-            this.tcpPage.SuspendLayout();
-            this.groupBox5.SuspendLayout();
+            this.m_ModGroup.SuspendLayout();
+            this.m_WhisperGroup.SuspendLayout();
+            this.m_ChannelGroup.SuspendLayout();
+            this.m_ConnectionGroup.SuspendLayout();
+            this.versionTab.SuspendLayout();
             this.SuspendLayout();
             // 
-            // tcpBtnJoin
+            // websocketPage
             // 
-            this.tcpBtnJoin.Enabled = false;
-            this.tcpBtnJoin.Location = new System.Drawing.Point(7, 48);
-            this.tcpBtnJoin.Name = "tcpBtnJoin";
-            this.tcpBtnJoin.Size = new System.Drawing.Size(133, 23);
-            this.tcpBtnJoin.TabIndex = 0;
-            this.tcpBtnJoin.TabStop = false;
-            this.tcpBtnJoin.Text = "Join";
-            this.tcpBtnJoin.UseVisualStyleBackColor = true;
-            this.tcpBtnJoin.Click += new System.EventHandler(this.TCP_BtnJoin_Click);
+            this.websocketPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.websocketPage.Controls.Add(this.m_ModGroup);
+            this.websocketPage.Controls.Add(this.m_EventGroup);
+            this.websocketPage.Controls.Add(this.m_WhisperGroup);
+            this.websocketPage.Controls.Add(this.m_ChannelGroup);
+            this.websocketPage.Controls.Add(this.m_ConnectionGroup);
+            this.websocketPage.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.websocketPage.Location = new System.Drawing.Point(4, 22);
+            this.websocketPage.Name = "websocketPage";
+            this.websocketPage.Padding = new System.Windows.Forms.Padding(3);
+            this.websocketPage.Size = new System.Drawing.Size(767, 519);
+            this.websocketPage.TabIndex = 1;
+            this.websocketPage.Text = "WebSocket";
             // 
-            // tcpBtnLeave
+            // m_ModGroup
             // 
-            this.tcpBtnLeave.Enabled = false;
-            this.tcpBtnLeave.Location = new System.Drawing.Point(168, 48);
-            this.tcpBtnLeave.Name = "tcpBtnLeave";
-            this.tcpBtnLeave.Size = new System.Drawing.Size(133, 23);
-            this.tcpBtnLeave.TabIndex = 1;
-            this.tcpBtnLeave.TabStop = false;
-            this.tcpBtnLeave.Text = "Leave";
-            this.tcpBtnLeave.UseVisualStyleBackColor = true;
-            this.tcpBtnLeave.Click += new System.EventHandler(this.TCP_BtnLeave_Click);
+            this.m_ModGroup.Controls.Add(this.m_UnloadModButton);
+            this.m_ModGroup.Controls.Add(this.m_UnloadModCB);
+            this.m_ModGroup.Controls.Add(this.m_LoadModButton);
+            this.m_ModGroup.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.m_ModGroup.Location = new System.Drawing.Point(7, 99);
+            this.m_ModGroup.Name = "m_ModGroup";
+            this.m_ModGroup.Size = new System.Drawing.Size(282, 103);
+            this.m_ModGroup.TabIndex = 8;
+            this.m_ModGroup.TabStop = false;
+            this.m_ModGroup.Text = "Load / Remove Mods";
             // 
-            // tcpTBoxJoin
+            // m_UnloadModButton
             // 
-            this.tcpTBoxJoin.Location = new System.Drawing.Point(7, 22);
-            this.tcpTBoxJoin.Name = "tcpTBoxJoin";
-            this.tcpTBoxJoin.Size = new System.Drawing.Size(133, 20);
-            this.tcpTBoxJoin.TabIndex = 2;
-            this.tcpTBoxJoin.Text = "Channel to join";
-            this.tcpTBoxJoin.Enter += new System.EventHandler(this.TCP_TBoxJoin_Enter);
-            this.tcpTBoxJoin.Leave += new System.EventHandler(this.TCP_TBoxJoin_Leave);
+            this.m_UnloadModButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_UnloadModButton.Location = new System.Drawing.Point(185, 28);
+            this.m_UnloadModButton.Name = "m_UnloadModButton";
+            this.m_UnloadModButton.Size = new System.Drawing.Size(91, 20);
+            this.m_UnloadModButton.TabIndex = 2;
+            this.m_UnloadModButton.Text = "Unload Mod";
+            this.m_UnloadModButton.UseVisualStyleBackColor = true;
+            this.m_UnloadModButton.Click += new System.EventHandler(this.UnloadModButton_Click);
             // 
-            // groupBox1
+            // m_UnloadModCB
             // 
-            this.groupBox1.Controls.Add(this.tcpRTBoxChat);
-            this.groupBox1.Location = new System.Drawing.Point(6, 250);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(307, 218);
-            this.groupBox1.TabIndex = 4;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Chat";
+            this.m_UnloadModCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.m_UnloadModCB.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_UnloadModCB.FormattingEnabled = true;
+            this.m_UnloadModCB.Location = new System.Drawing.Point(6, 28);
+            this.m_UnloadModCB.Name = "m_UnloadModCB";
+            this.m_UnloadModCB.Size = new System.Drawing.Size(173, 21);
+            this.m_UnloadModCB.TabIndex = 1;
             // 
-            // tcpRTBoxChat
+            // m_LoadModButton
             // 
-            this.tcpRTBoxChat.Location = new System.Drawing.Point(7, 19);
-            this.tcpRTBoxChat.Name = "tcpRTBoxChat";
-            this.tcpRTBoxChat.ReadOnly = true;
-            this.tcpRTBoxChat.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.tcpRTBoxChat.Size = new System.Drawing.Size(288, 193);
-            this.tcpRTBoxChat.TabIndex = 0;
-            this.tcpRTBoxChat.TabStop = false;
-            this.tcpRTBoxChat.Text = "";
+            this.m_LoadModButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_LoadModButton.Location = new System.Drawing.Point(6, 69);
+            this.m_LoadModButton.Name = "m_LoadModButton";
+            this.m_LoadModButton.Size = new System.Drawing.Size(270, 28);
+            this.m_LoadModButton.TabIndex = 0;
+            this.m_LoadModButton.Text = "Load Mods";
+            this.m_LoadModButton.UseVisualStyleBackColor = true;
+            this.m_LoadModButton.Click += new System.EventHandler(this.LoadModButton_Click);
             // 
-            // groupBox2
+            // m_EventGroup
             // 
-            this.groupBox2.Controls.Add(this.tcpRTBoxEvents);
-            this.groupBox2.Location = new System.Drawing.Point(318, 62);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(199, 406);
-            this.groupBox2.TabIndex = 5;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Event Logs";
+            this.m_EventGroup.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.m_EventGroup.Location = new System.Drawing.Point(7, 208);
+            this.m_EventGroup.Name = "m_EventGroup";
+            this.m_EventGroup.Size = new System.Drawing.Size(282, 297);
+            this.m_EventGroup.TabIndex = 7;
+            this.m_EventGroup.TabStop = false;
+            this.m_EventGroup.Text = "Events";
+            this.m_EventGroup.Visible = false;
             // 
-            // tcpRTBoxEvents
+            // m_WhisperGroup
             // 
-            this.tcpRTBoxEvents.Location = new System.Drawing.Point(6, 19);
-            this.tcpRTBoxEvents.Name = "tcpRTBoxEvents";
-            this.tcpRTBoxEvents.ReadOnly = true;
-            this.tcpRTBoxEvents.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.tcpRTBoxEvents.Size = new System.Drawing.Size(184, 381);
-            this.tcpRTBoxEvents.TabIndex = 0;
-            this.tcpRTBoxEvents.TabStop = false;
-            this.tcpRTBoxEvents.Text = "";
+            this.m_WhisperGroup.Controls.Add(this.m_WhisperLabel);
+            this.m_WhisperGroup.Controls.Add(this.m_WhisperInputTB);
+            this.m_WhisperGroup.Controls.Add(this.m_WhisperOutputTB);
+            this.m_WhisperGroup.Controls.Add(this.m_WhisperUserTB);
+            this.m_WhisperGroup.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.m_WhisperGroup.Location = new System.Drawing.Point(532, 13);
+            this.m_WhisperGroup.Name = "m_WhisperGroup";
+            this.m_WhisperGroup.Size = new System.Drawing.Size(230, 498);
+            this.m_WhisperGroup.TabIndex = 6;
+            this.m_WhisperGroup.TabStop = false;
+            this.m_WhisperGroup.Text = "Whispers";
+            this.m_WhisperGroup.Visible = false;
             // 
-            // groupBox3
+            // m_WhisperLabel
             // 
-            this.groupBox3.Controls.Add(this.tcpTBoxWhisper);
-            this.groupBox3.Controls.Add(this.tcpCBoxJoinedChannels);
-            this.groupBox3.Controls.Add(this.tcpRBtnWhisper);
-            this.groupBox3.Controls.Add(this.tcpRBtnChat);
-            this.groupBox3.Controls.Add(this.tcpRTBoxChatOutput);
-            this.groupBox3.Location = new System.Drawing.Point(6, 152);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(307, 94);
-            this.groupBox3.TabIndex = 6;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Chat Input";
+            this.m_WhisperLabel.AutoSize = true;
+            this.m_WhisperLabel.Location = new System.Drawing.Point(17, 28);
+            this.m_WhisperLabel.Name = "m_WhisperLabel";
+            this.m_WhisperLabel.Size = new System.Drawing.Size(74, 13);
+            this.m_WhisperLabel.TabIndex = 10;
+            this.m_WhisperLabel.Text = "Whisper User:";
             // 
-            // tcpTBoxWhisper
+            // m_WhisperInputTB
             // 
-            this.tcpTBoxWhisper.Location = new System.Drawing.Point(168, 16);
-            this.tcpTBoxWhisper.Name = "tcpTBoxWhisper";
-            this.tcpTBoxWhisper.Size = new System.Drawing.Size(133, 20);
-            this.tcpTBoxWhisper.TabIndex = 4;
-            this.tcpTBoxWhisper.Text = "Username to whisper";
-            this.tcpTBoxWhisper.Visible = false;
-            this.tcpTBoxWhisper.Enter += new System.EventHandler(this.TCP_TBoxWhisper_Enter);
-            this.tcpTBoxWhisper.Leave += new System.EventHandler(this.TCP_TBoxWhisper_Leave);
+            this.m_WhisperInputTB.Location = new System.Drawing.Point(8, 54);
+            this.m_WhisperInputTB.Name = "m_WhisperInputTB";
+            this.m_WhisperInputTB.Size = new System.Drawing.Size(216, 54);
+            this.m_WhisperInputTB.TabIndex = 6;
+            this.m_WhisperInputTB.Text = "";
+            this.m_WhisperInputTB.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.WhisperInputTB_KeyPress);
             // 
-            // tcpCBoxJoinedChannels
+            // m_WhisperOutputTB
             // 
-            this.tcpCBoxJoinedChannels.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.tcpCBoxJoinedChannels.Enabled = false;
-            this.tcpCBoxJoinedChannels.FormattingEnabled = true;
-            this.tcpCBoxJoinedChannels.Location = new System.Drawing.Point(168, 15);
-            this.tcpCBoxJoinedChannels.Name = "tcpCBoxJoinedChannels";
-            this.tcpCBoxJoinedChannels.Size = new System.Drawing.Size(133, 21);
-            this.tcpCBoxJoinedChannels.TabIndex = 5;
+            this.m_WhisperOutputTB.Location = new System.Drawing.Point(8, 114);
+            this.m_WhisperOutputTB.Name = "m_WhisperOutputTB";
+            this.m_WhisperOutputTB.ReadOnly = true;
+            this.m_WhisperOutputTB.Size = new System.Drawing.Size(216, 378);
+            this.m_WhisperOutputTB.TabIndex = 7;
+            this.m_WhisperOutputTB.Text = "";
             // 
-            // tcpRBtnWhisper
+            // m_WhisperUserTB
             // 
-            this.tcpRBtnWhisper.AutoSize = true;
-            this.tcpRBtnWhisper.Location = new System.Drawing.Point(60, 19);
-            this.tcpRBtnWhisper.Name = "tcpRBtnWhisper";
-            this.tcpRBtnWhisper.Size = new System.Drawing.Size(64, 17);
-            this.tcpRBtnWhisper.TabIndex = 2;
-            this.tcpRBtnWhisper.Text = "Whisper";
-            this.tcpRBtnWhisper.UseVisualStyleBackColor = true;
-            this.tcpRBtnWhisper.CheckedChanged += new System.EventHandler(this.TCP_RBtnWhisper_CheckedChanged);
+            this.m_WhisperUserTB.Location = new System.Drawing.Point(111, 24);
+            this.m_WhisperUserTB.Name = "m_WhisperUserTB";
+            this.m_WhisperUserTB.Size = new System.Drawing.Size(113, 20);
+            this.m_WhisperUserTB.TabIndex = 5;
             // 
-            // tcpRBtnChat
+            // m_ChannelGroup
             // 
-            this.tcpRBtnChat.AutoSize = true;
-            this.tcpRBtnChat.Checked = true;
-            this.tcpRBtnChat.Location = new System.Drawing.Point(7, 20);
-            this.tcpRBtnChat.Name = "tcpRBtnChat";
-            this.tcpRBtnChat.Size = new System.Drawing.Size(47, 17);
-            this.tcpRBtnChat.TabIndex = 1;
-            this.tcpRBtnChat.TabStop = true;
-            this.tcpRBtnChat.Text = "Chat";
-            this.tcpRBtnChat.UseVisualStyleBackColor = true;
-            this.tcpRBtnChat.CheckedChanged += new System.EventHandler(this.TCP_RBtnChat_CheckedChanged);
+            this.m_ChannelGroup.Controls.Add(this.m_ChatChannelLabel);
+            this.m_ChannelGroup.Controls.Add(this.m_LeaveChannelButton);
+            this.m_ChannelGroup.Controls.Add(this.m_ChannelMessageSelectCB);
+            this.m_ChannelGroup.Controls.Add(this.m_JoinChannelButton);
+            this.m_ChannelGroup.Controls.Add(this.m_ChannelInputTB);
+            this.m_ChannelGroup.Controls.Add(this.m_ChannelOutputTB);
+            this.m_ChannelGroup.Controls.Add(this.m_ChannelLeaveCB);
+            this.m_ChannelGroup.Controls.Add(this.m_ChannelJoinTB);
+            this.m_ChannelGroup.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.m_ChannelGroup.Location = new System.Drawing.Point(297, 13);
+            this.m_ChannelGroup.Name = "m_ChannelGroup";
+            this.m_ChannelGroup.Size = new System.Drawing.Size(230, 498);
+            this.m_ChannelGroup.TabIndex = 2;
+            this.m_ChannelGroup.TabStop = false;
+            this.m_ChannelGroup.Text = "Public Twitch Chat";
+            this.m_ChannelGroup.Visible = false;
             // 
-            // tcpRTBoxChatOutput
+            // m_ChatChannelLabel
             // 
-            this.tcpRTBoxChatOutput.Location = new System.Drawing.Point(7, 42);
-            this.tcpRTBoxChatOutput.Name = "tcpRTBoxChatOutput";
-            this.tcpRTBoxChatOutput.Size = new System.Drawing.Size(288, 46);
-            this.tcpRTBoxChatOutput.TabIndex = 0;
-            this.tcpRTBoxChatOutput.TabStop = false;
-            this.tcpRTBoxChatOutput.Text = "";
-            this.tcpRTBoxChatOutput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TCP_RTBoxChatOutput_KeyPress);
-            this.tcpRTBoxChatOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TCP_RTBoxChatOutput_KeyUp);
+            this.m_ChatChannelLabel.AutoSize = true;
+            this.m_ChatChannelLabel.Location = new System.Drawing.Point(6, 107);
+            this.m_ChatChannelLabel.Name = "m_ChatChannelLabel";
+            this.m_ChatChannelLabel.Size = new System.Drawing.Size(93, 13);
+            this.m_ChatChannelLabel.TabIndex = 7;
+            this.m_ChatChannelLabel.Text = "Post a message in";
             // 
-            // tcpCBoxChannels
+            // m_LeaveChannelButton
             // 
-            this.tcpCBoxChannels.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.tcpCBoxChannels.Enabled = false;
-            this.tcpCBoxChannels.FormattingEnabled = true;
-            this.tcpCBoxChannels.Location = new System.Drawing.Point(168, 21);
-            this.tcpCBoxChannels.Name = "tcpCBoxChannels";
-            this.tcpCBoxChannels.Size = new System.Drawing.Size(133, 21);
-            this.tcpCBoxChannels.TabIndex = 4;
+            this.m_LeaveChannelButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_LeaveChannelButton.Location = new System.Drawing.Point(133, 52);
+            this.m_LeaveChannelButton.Name = "m_LeaveChannelButton";
+            this.m_LeaveChannelButton.Size = new System.Drawing.Size(89, 21);
+            this.m_LeaveChannelButton.TabIndex = 6;
+            this.m_LeaveChannelButton.Text = "Leave";
+            this.m_LeaveChannelButton.UseVisualStyleBackColor = true;
+            this.m_LeaveChannelButton.Visible = false;
+            this.m_LeaveChannelButton.Click += new System.EventHandler(this.LeaveChannelButton_Click);
             // 
-            // groupBox4
+            // m_ChannelMessageSelectCB
             // 
-            this.groupBox4.Controls.Add(this.tcpTBoxJoin);
-            this.groupBox4.Controls.Add(this.tcpCBoxChannels);
-            this.groupBox4.Controls.Add(this.tcpBtnJoin);
-            this.groupBox4.Controls.Add(this.tcpBtnLeave);
-            this.groupBox4.Location = new System.Drawing.Point(6, 62);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(307, 84);
-            this.groupBox4.TabIndex = 7;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "Join/Leave";
+            this.m_ChannelMessageSelectCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.m_ChannelMessageSelectCB.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_ChannelMessageSelectCB.FormattingEnabled = true;
+            this.m_ChannelMessageSelectCB.Location = new System.Drawing.Point(105, 104);
+            this.m_ChannelMessageSelectCB.Name = "m_ChannelMessageSelectCB";
+            this.m_ChannelMessageSelectCB.Size = new System.Drawing.Size(117, 21);
+            this.m_ChannelMessageSelectCB.TabIndex = 4;
+            // 
+            // m_JoinChannelButton
+            // 
+            this.m_JoinChannelButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_JoinChannelButton.Location = new System.Drawing.Point(133, 26);
+            this.m_JoinChannelButton.Name = "m_JoinChannelButton";
+            this.m_JoinChannelButton.Size = new System.Drawing.Size(89, 21);
+            this.m_JoinChannelButton.TabIndex = 3;
+            this.m_JoinChannelButton.TabStop = false;
+            this.m_JoinChannelButton.Text = "Join";
+            this.m_JoinChannelButton.UseVisualStyleBackColor = true;
+            this.m_JoinChannelButton.Click += new System.EventHandler(this.JoinChannelButton_Click);
+            // 
+            // m_ChannelInputTB
+            // 
+            this.m_ChannelInputTB.Location = new System.Drawing.Point(6, 135);
+            this.m_ChannelInputTB.Name = "m_ChannelInputTB";
+            this.m_ChannelInputTB.Size = new System.Drawing.Size(218, 54);
+            this.m_ChannelInputTB.TabIndex = 9;
+            this.m_ChannelInputTB.Text = "";
+            this.m_ChannelInputTB.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ChannelMessageInput_KeyPress);
+            this.m_ChannelInputTB.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ChannelMessageInput_KeyUp);
+            // 
+            // m_ChannelOutputTB
+            // 
+            this.m_ChannelOutputTB.Location = new System.Drawing.Point(6, 195);
+            this.m_ChannelOutputTB.Name = "m_ChannelOutputTB";
+            this.m_ChannelOutputTB.ReadOnly = true;
+            this.m_ChannelOutputTB.Size = new System.Drawing.Size(218, 297);
+            this.m_ChannelOutputTB.TabIndex = 10;
+            this.m_ChannelOutputTB.Text = "";
+            // 
+            // m_ChannelLeaveCB
+            // 
+            this.m_ChannelLeaveCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.m_ChannelLeaveCB.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_ChannelLeaveCB.FormattingEnabled = true;
+            this.m_ChannelLeaveCB.Location = new System.Drawing.Point(6, 52);
+            this.m_ChannelLeaveCB.Name = "m_ChannelLeaveCB";
+            this.m_ChannelLeaveCB.Size = new System.Drawing.Size(121, 21);
+            this.m_ChannelLeaveCB.TabIndex = 5;
+            this.m_ChannelLeaveCB.Visible = false;
+            // 
+            // m_ChannelJoinTB
+            // 
+            this.m_ChannelJoinTB.Location = new System.Drawing.Point(6, 26);
+            this.m_ChannelJoinTB.Name = "m_ChannelJoinTB";
+            this.m_ChannelJoinTB.Size = new System.Drawing.Size(121, 20);
+            this.m_ChannelJoinTB.TabIndex = 8;
+            this.m_ChannelJoinTB.Text = "Channel to join";
+            this.m_ChannelJoinTB.Enter += new System.EventHandler(this.JoinChannelTB_Enter);
+            this.m_ChannelJoinTB.Leave += new System.EventHandler(this.JoinChannelTB_Leave);
+            // 
+            // m_ConnectionGroup
+            // 
+            this.m_ConnectionGroup.Controls.Add(this.m_DisconnectButton);
+            this.m_ConnectionGroup.Controls.Add(this.m_LoginButton);
+            this.m_ConnectionGroup.Controls.Add(this.m_ConnectButton);
+            this.m_ConnectionGroup.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.m_ConnectionGroup.Location = new System.Drawing.Point(7, 13);
+            this.m_ConnectionGroup.Name = "m_ConnectionGroup";
+            this.m_ConnectionGroup.Size = new System.Drawing.Size(282, 79);
+            this.m_ConnectionGroup.TabIndex = 0;
+            this.m_ConnectionGroup.TabStop = false;
+            this.m_ConnectionGroup.Text = "Connection to Twitch";
+            // 
+            // m_DisconnectButton
+            // 
+            this.m_DisconnectButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_DisconnectButton.Location = new System.Drawing.Point(147, 51);
+            this.m_DisconnectButton.Name = "m_DisconnectButton";
+            this.m_DisconnectButton.Size = new System.Drawing.Size(129, 20);
+            this.m_DisconnectButton.TabIndex = 2;
+            this.m_DisconnectButton.Text = "Disconnect";
+            this.m_DisconnectButton.UseVisualStyleBackColor = true;
+            this.m_DisconnectButton.Visible = false;
+            this.m_DisconnectButton.Click += new System.EventHandler(this.DisconnectButton_Click);
+            // 
+            // m_LoginButton
+            // 
+            this.m_LoginButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_LoginButton.Location = new System.Drawing.Point(6, 19);
+            this.m_LoginButton.Name = "m_LoginButton";
+            this.m_LoginButton.Size = new System.Drawing.Size(270, 28);
+            this.m_LoginButton.TabIndex = 1;
+            this.m_LoginButton.Text = "Login";
+            this.m_LoginButton.UseVisualStyleBackColor = true;
+            this.m_LoginButton.Click += new System.EventHandler(this.LoginButton_Click);
+            // 
+            // m_ConnectButton
+            // 
+            this.m_ConnectButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.m_ConnectButton.Location = new System.Drawing.Point(6, 51);
+            this.m_ConnectButton.Name = "m_ConnectButton";
+            this.m_ConnectButton.Size = new System.Drawing.Size(129, 20);
+            this.m_ConnectButton.TabIndex = 0;
+            this.m_ConnectButton.Text = "Connect";
+            this.m_ConnectButton.UseVisualStyleBackColor = true;
+            this.m_ConnectButton.Visible = false;
+            this.m_ConnectButton.Click += new System.EventHandler(this.ConnectButton_Click);
             // 
             // versionTab
             // 
             this.versionTab.Controls.Add(this.websocketPage);
-            this.versionTab.Controls.Add(this.tcpPage);
             this.versionTab.Location = new System.Drawing.Point(7, 13);
             this.versionTab.Name = "versionTab";
             this.versionTab.SelectedIndex = 0;
-            this.versionTab.Size = new System.Drawing.Size(531, 504);
+            this.versionTab.Size = new System.Drawing.Size(775, 545);
             this.versionTab.TabIndex = 8;
-            // 
-            // websocketPage
-            // 
-            this.websocketPage.Controls.Add(this.webChatGroup);
-            this.websocketPage.Controls.Add(this.webJoinLeaveGroup);
-            this.websocketPage.Controls.Add(this.webConnectionGroup);
-            this.websocketPage.Location = new System.Drawing.Point(4, 22);
-            this.websocketPage.Name = "websocketPage";
-            this.websocketPage.Padding = new System.Windows.Forms.Padding(3);
-            this.websocketPage.Size = new System.Drawing.Size(523, 478);
-            this.websocketPage.TabIndex = 1;
-            this.websocketPage.Text = "WebSocket";
-            this.websocketPage.UseVisualStyleBackColor = true;
-            // 
-            // webChatGroup
-            // 
-            this.webChatGroup.Controls.Add(this.webTBoxWhisper);
-            this.webChatGroup.Controls.Add(this.webCBoxPublicChannels);
-            this.webChatGroup.Controls.Add(this.webRBtnWhisper);
-            this.webChatGroup.Controls.Add(this.webRBtnPublicChat);
-            this.webChatGroup.Controls.Add(this.webRTBoxTwitchOutput);
-            this.webChatGroup.Controls.Add(this.webRTBoxTwitchInput);
-            this.webChatGroup.Location = new System.Drawing.Point(7, 94);
-            this.webChatGroup.Name = "webChatGroup";
-            this.webChatGroup.Size = new System.Drawing.Size(207, 378);
-            this.webChatGroup.TabIndex = 2;
-            this.webChatGroup.TabStop = false;
-            this.webChatGroup.Text = "Twitch Chat";
-            this.webChatGroup.Visible = false;
-            // 
-            // webTBoxWhisper
-            // 
-            this.webTBoxWhisper.Location = new System.Drawing.Point(99, 49);
-            this.webTBoxWhisper.Name = "webTBoxWhisper";
-            this.webTBoxWhisper.Size = new System.Drawing.Size(102, 20);
-            this.webTBoxWhisper.TabIndex = 5;
-            this.webTBoxWhisper.Visible = false;
-            // 
-            // webCBoxPublicChannels
-            // 
-            this.webCBoxPublicChannels.FormattingEnabled = true;
-            this.webCBoxPublicChannels.Location = new System.Drawing.Point(99, 18);
-            this.webCBoxPublicChannels.Name = "webCBoxPublicChannels";
-            this.webCBoxPublicChannels.Size = new System.Drawing.Size(102, 21);
-            this.webCBoxPublicChannels.TabIndex = 4;
-            // 
-            // webRBtnWhisper
-            // 
-            this.webRBtnWhisper.AutoSize = true;
-            this.webRBtnWhisper.Location = new System.Drawing.Point(7, 51);
-            this.webRBtnWhisper.Name = "webRBtnWhisper";
-            this.webRBtnWhisper.Size = new System.Drawing.Size(64, 17);
-            this.webRBtnWhisper.TabIndex = 3;
-            this.webRBtnWhisper.Text = "Whisper";
-            this.webRBtnWhisper.UseVisualStyleBackColor = true;
-            this.webRBtnWhisper.CheckedChanged += new System.EventHandler(this.Web_RBtnWhisper_CheckedChanged);
-            // 
-            // webRBtnPublicChat
-            // 
-            this.webRBtnPublicChat.AutoSize = true;
-            this.webRBtnPublicChat.Checked = true;
-            this.webRBtnPublicChat.Location = new System.Drawing.Point(7, 20);
-            this.webRBtnPublicChat.Name = "webRBtnPublicChat";
-            this.webRBtnPublicChat.Size = new System.Drawing.Size(79, 17);
-            this.webRBtnPublicChat.TabIndex = 2;
-            this.webRBtnPublicChat.TabStop = true;
-            this.webRBtnPublicChat.Text = "Public Chat";
-            this.webRBtnPublicChat.UseVisualStyleBackColor = true;
-            this.webRBtnPublicChat.CheckedChanged += new System.EventHandler(this.Web_RBtnPublicChat_CheckedChanged);
-            // 
-            // webRTBoxTwitchOutput
-            // 
-            this.webRTBoxTwitchOutput.Location = new System.Drawing.Point(6, 83);
-            this.webRTBoxTwitchOutput.Name = "webRTBoxTwitchOutput";
-            this.webRTBoxTwitchOutput.Size = new System.Drawing.Size(195, 54);
-            this.webRTBoxTwitchOutput.TabIndex = 1;
-            this.webRTBoxTwitchOutput.Text = "";
-            this.webRTBoxTwitchOutput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Web_RTBoxTwitchOutput_KeyPress);
-            this.webRTBoxTwitchOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Web_RTBoxTwitchOutput_KeyUp);
-            // 
-            // webRTBoxTwitchInput
-            // 
-            this.webRTBoxTwitchInput.Location = new System.Drawing.Point(6, 143);
-            this.webRTBoxTwitchInput.Name = "webRTBoxTwitchInput";
-            this.webRTBoxTwitchInput.ReadOnly = true;
-            this.webRTBoxTwitchInput.Size = new System.Drawing.Size(195, 229);
-            this.webRTBoxTwitchInput.TabIndex = 0;
-            this.webRTBoxTwitchInput.Text = "";
-            // 
-            // webJoinLeaveGroup
-            // 
-            this.webJoinLeaveGroup.Controls.Add(this.webBtnLeave);
-            this.webJoinLeaveGroup.Controls.Add(this.webCBoxJoinedChannels);
-            this.webJoinLeaveGroup.Controls.Add(this.webBtnJoin);
-            this.webJoinLeaveGroup.Controls.Add(this.webTBoxJoin);
-            this.webJoinLeaveGroup.Location = new System.Drawing.Point(226, 7);
-            this.webJoinLeaveGroup.Name = "webJoinLeaveGroup";
-            this.webJoinLeaveGroup.Size = new System.Drawing.Size(291, 80);
-            this.webJoinLeaveGroup.TabIndex = 1;
-            this.webJoinLeaveGroup.TabStop = false;
-            this.webJoinLeaveGroup.Text = "Join/Leave Channels";
-            this.webJoinLeaveGroup.Visible = false;
-            // 
-            // webBtnLeave
-            // 
-            this.webBtnLeave.Location = new System.Drawing.Point(145, 45);
-            this.webBtnLeave.Name = "webBtnLeave";
-            this.webBtnLeave.Size = new System.Drawing.Size(119, 21);
-            this.webBtnLeave.TabIndex = 6;
-            this.webBtnLeave.Text = "Leave";
-            this.webBtnLeave.UseVisualStyleBackColor = true;
-            this.webBtnLeave.Visible = false;
-            this.webBtnLeave.Click += new System.EventHandler(this.Web_BtnLeave_Click);
-            // 
-            // webCBoxJoinedChannels
-            // 
-            this.webCBoxJoinedChannels.FormattingEnabled = true;
-            this.webCBoxJoinedChannels.Location = new System.Drawing.Point(6, 45);
-            this.webCBoxJoinedChannels.Name = "webCBoxJoinedChannels";
-            this.webCBoxJoinedChannels.Size = new System.Drawing.Size(121, 21);
-            this.webCBoxJoinedChannels.TabIndex = 5;
-            this.webCBoxJoinedChannels.Visible = false;
-            // 
-            // webBtnJoin
-            // 
-            this.webBtnJoin.Location = new System.Drawing.Point(145, 18);
-            this.webBtnJoin.Name = "webBtnJoin";
-            this.webBtnJoin.Size = new System.Drawing.Size(119, 20);
-            this.webBtnJoin.TabIndex = 3;
-            this.webBtnJoin.TabStop = false;
-            this.webBtnJoin.Text = "Join";
-            this.webBtnJoin.UseVisualStyleBackColor = true;
-            this.webBtnJoin.Click += new System.EventHandler(this.Web_BtnJoin_Click);
-            // 
-            // webTBoxJoin
-            // 
-            this.webTBoxJoin.Location = new System.Drawing.Point(6, 19);
-            this.webTBoxJoin.Name = "webTBoxJoin";
-            this.webTBoxJoin.Size = new System.Drawing.Size(121, 20);
-            this.webTBoxJoin.TabIndex = 4;
-            this.webTBoxJoin.Text = "Channel to join";
-            this.webTBoxJoin.Enter += new System.EventHandler(this.Web_TBoxJoin_Enter);
-            this.webTBoxJoin.Leave += new System.EventHandler(this.Web_TBoxJoin_Leave);
-            // 
-            // webConnectionGroup
-            // 
-            this.webConnectionGroup.Controls.Add(this.webBtnConnect);
-            this.webConnectionGroup.Location = new System.Drawing.Point(7, 8);
-            this.webConnectionGroup.Name = "webConnectionGroup";
-            this.webConnectionGroup.Size = new System.Drawing.Size(207, 80);
-            this.webConnectionGroup.TabIndex = 0;
-            this.webConnectionGroup.TabStop = false;
-            this.webConnectionGroup.Text = "Connection to Twitch";
-            // 
-            // webBtnConnect
-            // 
-            this.webBtnConnect.Location = new System.Drawing.Point(3, 19);
-            this.webBtnConnect.Name = "webBtnConnect";
-            this.webBtnConnect.Size = new System.Drawing.Size(201, 20);
-            this.webBtnConnect.TabIndex = 0;
-            this.webBtnConnect.Text = "Connect";
-            this.webBtnConnect.UseVisualStyleBackColor = true;
-            this.webBtnConnect.Click += new System.EventHandler(this.Web_BtnConnect_Click);
-            // 
-            // tcpPage
-            // 
-            this.tcpPage.Controls.Add(this.groupBox5);
-            this.tcpPage.Controls.Add(this.groupBox3);
-            this.tcpPage.Controls.Add(this.groupBox1);
-            this.tcpPage.Controls.Add(this.groupBox4);
-            this.tcpPage.Controls.Add(this.groupBox2);
-            this.tcpPage.Location = new System.Drawing.Point(4, 22);
-            this.tcpPage.Name = "tcpPage";
-            this.tcpPage.Padding = new System.Windows.Forms.Padding(3);
-            this.tcpPage.Size = new System.Drawing.Size(523, 478);
-            this.tcpPage.TabIndex = 0;
-            this.tcpPage.Text = "TCPSocket";
-            this.tcpPage.UseVisualStyleBackColor = true;
-            // 
-            // groupBox5
-            // 
-            this.groupBox5.Controls.Add(this.tcpBtnDisconnect);
-            this.groupBox5.Controls.Add(this.tcp_BtnConnect);
-            this.groupBox5.Location = new System.Drawing.Point(6, 4);
-            this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(511, 52);
-            this.groupBox5.TabIndex = 8;
-            this.groupBox5.TabStop = false;
-            this.groupBox5.Text = "Connect/Disconnect";
-            // 
-            // tcpBtnDisconnect
-            // 
-            this.tcpBtnDisconnect.Enabled = false;
-            this.tcpBtnDisconnect.Location = new System.Drawing.Point(260, 20);
-            this.tcpBtnDisconnect.Name = "tcpBtnDisconnect";
-            this.tcpBtnDisconnect.Size = new System.Drawing.Size(245, 23);
-            this.tcpBtnDisconnect.TabIndex = 1;
-            this.tcpBtnDisconnect.Text = "Disconnect";
-            this.tcpBtnDisconnect.UseVisualStyleBackColor = true;
-            this.tcpBtnDisconnect.Visible = false;
-            this.tcpBtnDisconnect.Click += new System.EventHandler(this.TCP_BtnDisconnect_Click);
-            // 
-            // tcp_BtnConnect
-            // 
-            this.tcp_BtnConnect.Location = new System.Drawing.Point(7, 20);
-            this.tcp_BtnConnect.Name = "tcp_BtnConnect";
-            this.tcp_BtnConnect.Size = new System.Drawing.Size(245, 23);
-            this.tcp_BtnConnect.TabIndex = 0;
-            this.tcp_BtnConnect.Text = "Connect";
-            this.tcp_BtnConnect.UseVisualStyleBackColor = true;
-            this.tcp_BtnConnect.Click += new System.EventHandler(this.TCP_BtnConnect_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(543, 522);
+            this.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.ClientSize = new System.Drawing.Size(784, 561);
             this.Controls.Add(this.versionTab);
             this.Name = "MainForm";
             this.Text = "Tucxbot Open Source";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
-            this.versionTab.ResumeLayout(false);
             this.websocketPage.ResumeLayout(false);
-            this.webChatGroup.ResumeLayout(false);
-            this.webChatGroup.PerformLayout();
-            this.webJoinLeaveGroup.ResumeLayout(false);
-            this.webJoinLeaveGroup.PerformLayout();
-            this.webConnectionGroup.ResumeLayout(false);
-            this.tcpPage.ResumeLayout(false);
-            this.groupBox5.ResumeLayout(false);
+            this.m_ModGroup.ResumeLayout(false);
+            this.m_WhisperGroup.ResumeLayout(false);
+            this.m_WhisperGroup.PerformLayout();
+            this.m_ChannelGroup.ResumeLayout(false);
+            this.m_ChannelGroup.PerformLayout();
+            this.m_ConnectionGroup.ResumeLayout(false);
+            this.versionTab.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button tcpBtnJoin;
-        private System.Windows.Forms.Button tcpBtnLeave;
-        private System.Windows.Forms.TextBox tcpTBoxJoin;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.RichTextBox tcpRTBoxChat;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.RichTextBox tcpRTBoxEvents;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.RadioButton tcpRBtnWhisper;
-        private System.Windows.Forms.RadioButton tcpRBtnChat;
-        private System.Windows.Forms.RichTextBox tcpRTBoxChatOutput;
-        private System.Windows.Forms.TextBox tcpTBoxWhisper;
-        private System.Windows.Forms.ComboBox tcpCBoxChannels;
-        private System.Windows.Forms.GroupBox groupBox4;
-        private System.Windows.Forms.ComboBox tcpCBoxJoinedChannels;
-        private System.Windows.Forms.TabControl versionTab;
-        private System.Windows.Forms.TabPage tcpPage;
         private System.Windows.Forms.TabPage websocketPage;
-        private System.Windows.Forms.GroupBox groupBox5;
-        private System.Windows.Forms.Button tcpBtnDisconnect;
-        private System.Windows.Forms.Button tcp_BtnConnect;
-        private System.Windows.Forms.GroupBox webConnectionGroup;
-        private System.Windows.Forms.Button webBtnConnect;
-        private System.Windows.Forms.Button webBtnJoin;
-        private System.Windows.Forms.TextBox webTBoxJoin;
-        private System.Windows.Forms.GroupBox webJoinLeaveGroup;
-        private System.Windows.Forms.Button webBtnLeave;
-        private System.Windows.Forms.ComboBox webCBoxJoinedChannels;
-        private System.Windows.Forms.GroupBox webChatGroup;
-        private System.Windows.Forms.RichTextBox webRTBoxTwitchOutput;
-        private System.Windows.Forms.RichTextBox webRTBoxTwitchInput;
-        private System.Windows.Forms.TextBox webTBoxWhisper;
-        private System.Windows.Forms.ComboBox webCBoxPublicChannels;
-        private System.Windows.Forms.RadioButton webRBtnWhisper;
-        private System.Windows.Forms.RadioButton webRBtnPublicChat;
+        private System.Windows.Forms.GroupBox m_ChannelGroup;
+        private System.Windows.Forms.TextBox m_WhisperUserTB;
+        private System.Windows.Forms.ComboBox m_ChannelMessageSelectCB;
+        private System.Windows.Forms.RichTextBox m_ChannelInputTB;
+        private System.Windows.Forms.RichTextBox m_ChannelOutputTB;
+        private System.Windows.Forms.Button m_LeaveChannelButton;
+        private System.Windows.Forms.ComboBox m_ChannelLeaveCB;
+        private System.Windows.Forms.Button m_JoinChannelButton;
+        private System.Windows.Forms.TextBox m_ChannelJoinTB;
+        private System.Windows.Forms.GroupBox m_ConnectionGroup;
+        private System.Windows.Forms.Button m_LoginButton;
+        private System.Windows.Forms.Button m_ConnectButton;
+        private System.Windows.Forms.TabControl versionTab;
+        private System.Windows.Forms.Button m_DisconnectButton;
+        private System.Windows.Forms.GroupBox m_WhisperGroup;
+        private System.Windows.Forms.RichTextBox m_WhisperInputTB;
+        private System.Windows.Forms.RichTextBox m_WhisperOutputTB;
+        private System.Windows.Forms.Label m_ChatChannelLabel;
+        private System.Windows.Forms.Label m_WhisperLabel;
+        private System.Windows.Forms.GroupBox m_EventGroup;
+        private System.Windows.Forms.GroupBox m_ModGroup;
+        private System.Windows.Forms.Button m_LoadModButton;
+        private System.Windows.Forms.Button m_UnloadModButton;
+        private System.Windows.Forms.ComboBox m_UnloadModCB;
     }
 }
 

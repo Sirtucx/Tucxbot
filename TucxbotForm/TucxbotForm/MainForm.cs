@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using TwitchIRC_TCP;
 using System.Reflection;
 using System.IO;
 using Twitch_Websocket;
@@ -18,448 +17,76 @@ namespace TucxbotForm
 {
     public partial class MainForm : Form
     {
-        private Twitch m_TwitchInstance;
         private TwitchClient m_TwitchClient;
+        private LoginData m_LoginData;
         private int m_iPreviousIndex;
         private List<string> m_sPreviousChatMessages;
-        private List<string> m_sJoinedChannels;
-        private List<IChannelInputMod> m_ChannelInputMods;
-        private List<IWhisperInputMod> m_WhisperInputMods;
-        private List<IChannelJoinMod> m_ChannelJoinMods;
-        private List<IChatMessageMod> m_ChannelMessageMods;
-        private List<IWhisperMessageMod> m_WhisperMessageMods;
-        private List<IOnSubscriberMod> m_OnSubscriberMods;
+        private Dictionary<string, IChatMessageMod> m_ChannelMessageMods;
+        private Dictionary<string, IWhisperMessageMod> m_WhisperMessageMods;
+        private Dictionary<string, IOnSubscriberMod> m_OnSubscriberMods;
+        private enum CONNECTED_STATE
+        {
+            NOT_CONNECTED,
+            ATTEMPTING_CONNECTION,
+            CONNECTED
+        }
+        private CONNECTED_STATE m_ConnectedState;
+
 
         public MainForm()
         {
+            
             InitializeComponent();
-            LoadMods();
-            m_TwitchInstance = Twitch.Instance;
-
-            LoginData twitchClientCredentials = LoadCredentials();
-            if (twitchClientCredentials == null)
-            {
-                webConnectionGroup.Visible = false;
-                DialogResult warningDialog;
-                string sMessage = $"You are either missing the required Settings.json file or it has not been filled in correctly. It has been created {Environment.CurrentDirectory}/Data/Settings.json\nPlease fill in Settings.json and reload the program!";
-                warningDialog = MessageBox.Show(sMessage, "Tucxbot WebSocket Error");
-
-                if (!File.Exists($"{Environment.CurrentDirectory}/Data/Settings.json"))
-                {
-                    twitchClientCredentials = new LoginData();
-                    string sJSONContent = JsonConvert.SerializeObject(twitchClientCredentials, Formatting.Indented);
-
-                    using (StreamWriter writer = new StreamWriter($"{Environment.CurrentDirectory}/Data/Settings.json", false))
-                    {
-                        writer.Write(sJSONContent);
-                        writer.Flush();
-                        writer.Close();
-                    }
-                }
-            }
-            else
-            {
-                m_TwitchClient = TwitchClient.GetInstance(new IRCCredentials(twitchClientCredentials.Username, twitchClientCredentials.OAuth));
-            }
-            
             m_sPreviousChatMessages = new List<string>();
-
-            if (m_TwitchClient != null)
-            {
-                m_TwitchClient.OnTwitchConnected += OnTwitchClientConnected;
-            }
-        }
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            CloseTCP();
-            ShutdownMods();
-            CloseWeb();
+            m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
+            AutoLogin();
         }
 
-        private void LoadMods()
-        {
-            if (!Directory.Exists(Environment.CurrentDirectory + "/Mods/"))
-            {
-                Directory.CreateDirectory(Environment.CurrentDirectory + "/Mods/");
-            }
-            foreach (var file in Directory.EnumerateFiles(Environment.CurrentDirectory + "/Mods/", "*.dll"))
-            {
-                Assembly assembly = Assembly.LoadFile(file);
-                foreach(Type type in assembly.GetTypes())
-                {
-                    #region TCP Mods
-                    if (typeof(IChannelInputMod).IsAssignableFrom(type))
-                    {
-                        if (m_ChannelInputMods == null)
-                        {
-                            m_ChannelInputMods = new List<IChannelInputMod>();
-                        }
-                        m_ChannelInputMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChannelInputMod);
-                        Console.WriteLine("Loading Channel Input Mod: {0} to the project!", file);
-                    }
-                    else if (typeof(IWhisperInputMod).IsAssignableFrom(type))
-                    {
-                        if (m_WhisperInputMods == null)
-                        {
-                            m_WhisperInputMods = new List<IWhisperInputMod>();
-                        }
-                        m_WhisperInputMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IWhisperInputMod);
-                        Console.WriteLine("Loading Whisper Input Mod: {0} to the project!", file);
-                    }
-                    else if (typeof(IChannelJoinMod).IsAssignableFrom(type))
-                    {
-                        if (m_ChannelJoinMods == null)
-                        {
-                            m_ChannelJoinMods = new List<IChannelJoinMod>();
-                        }
-                        m_ChannelJoinMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChannelJoinMod);
-                        Console.WriteLine("Loading Channel Join Mod: {0} to the project!", file);
-                    }
-                    #endregion TCP Mods
-                    
-                    #region WebSocket Mods
-                    if (typeof(IChatMessageMod).IsAssignableFrom(type))
-                    {
-                        if (m_ChannelMessageMods == null)
-                        {
-                            m_ChannelMessageMods = new List<IChatMessageMod>();
-                        }
-                        m_ChannelMessageMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IChatMessageMod);
-                        Console.WriteLine("Loading Channel Message Mod: {0} to the project!", file);
-                    }
-                    else if (typeof(IWhisperMessageMod).IsAssignableFrom(type))
-                    {
-                        if (m_WhisperMessageMods == null)
-                        {
-                            m_WhisperMessageMods = new List<IWhisperMessageMod>();
-                        }
-                        m_WhisperMessageMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IWhisperMessageMod);
-                        Console.WriteLine("Loading Whisper Message Mod: {0} to the project!", file);
-                    }
-                    else if (typeof(IOnSubscriberMod).IsAssignableFrom(type))
-                    {
-                        if (m_OnSubscriberMods == null)
-                        {
-                            m_OnSubscriberMods = new List<IOnSubscriberMod>();
-                        }
-                        m_OnSubscriberMods.Add(type.GetConstructor(new Type[] { }).Invoke(null) as IOnSubscriberMod);
-                        Console.WriteLine("Loading OnSubscriber Mod: {0} to the project!", file);
-                    }
-                    #endregion WebSocket Mods
-                }
-            }
-        }
-        private void ShutdownMods()
-        {
-            if (m_ChannelInputMods != null)
-            {
-                foreach (IChannelInputMod icim in m_ChannelInputMods)
-                {
-                    icim.Shutdown();
-                }
-            }
-            if (m_ChannelJoinMods != null)
-            {
-                foreach (IChannelJoinMod icjm in m_ChannelJoinMods)
-                {
-                    icjm.Shutdown();
-                }
-            }
-            if (m_WhisperInputMods != null)
-            {
-                foreach (IWhisperInputMod iwim in m_WhisperInputMods)
-                {
-                    iwim.Shutdown();
-                }
-            }
-            if (m_ChannelMessageMods != null)
-            {
-                foreach (IChatMessageMod mod in m_ChannelMessageMods)
-                {
-                    mod.Shutdown();
-                }
-            }
-            if (m_WhisperMessageMods != null)
-            {
-                foreach (IWhisperMessageMod mod in m_WhisperMessageMods)
-                {
-                    mod.Shutdown();
-                }
-            }
-            if (m_OnSubscriberMods != null)
-            {
-                foreach (IOnSubscriberMod mod in m_OnSubscriberMods)
-                {
-                    mod.Shutdown();
-                }
-            }
-        }
-
-        #region TCP
-        #region TCP Twitch Form Events
-        private void OnChannelIRCConnected()
-        {
-            if (tcpBtnJoin.InvokeRequired)
-            {
-                tcpBtnJoin.Invoke(new Action(delegate { OnChannelIRCConnected(); }));
-                return;
-            }
-            tcpBtnJoin.Enabled = true;
-            tcpBtnDisconnect.Enabled = true;
-        }
-        private void OnChannelEnter(object sender, ChannelGateInteractionEventArgs e)
-        {
-            if (tcpRTBoxEvents.InvokeRequired)
-            {
-                tcpRTBoxEvents.Invoke(new Action(delegate { OnChannelEnter(sender, e); }));
-                return;
-            }
-            //if (e.Username == m_TwitchInstance.Username)
-            //{
-            //    if (m_ChannelJoinMods != null)
-            //    {
-            //        foreach (IChannelJoinMod cjMod in m_ChannelJoinMods)
-            //        {
-            //            cjMod.ProcessJoin(e.Target);
-            //        }
-            //    }
-            //}
-
-            tcpRTBoxEvents.AppendText(e.Username + " has joined " + e.Target + "\'s channel!\n");
-        }
-        private void OnChannelPart(object sender, ChannelGateInteractionEventArgs e)
-        {
-            if (tcpRTBoxEvents.InvokeRequired)
-            {
-                tcpRTBoxEvents.Invoke(new Action(delegate { OnChannelPart(sender, e); }));
-                return;
-            }
-            tcpRTBoxEvents.AppendText(e.Username + " has left " + e.Target + "\'s channel!\n");
-        }
-        private void OnChannelInput(object sender, ChatInputEventArgs e)
-        {
-            if (tcpRTBoxChat.InvokeRequired)
-            {
-                tcpRTBoxChat.Invoke(new Action(delegate { OnChannelInput(sender, e); }));
-                return;
-            }
-            //if (m_ChannelInputMods != null)
-            //{
-            //    foreach (IChannelInputMod cMod in m_ChannelInputMods)
-            //    {
-            //        cMod.ProcessMessage(e.Target, e.Sender, e.Message);
-            //    }
-            //}
-            tcpRTBoxChat.AppendText("#" + e.Target + "|(" + e.Sender + "): " + e.Message + "\n");
-        }
-        private void OnWhisperInput(object sender, ChatInputEventArgs e)
-        {
-            if (tcpRTBoxChat.InvokeRequired)
-            {
-                tcpRTBoxChat.Invoke(new Action(delegate { OnWhisperInput(sender, e); }));
-                return;
-            }
-            //if (m_WhisperInputMods != null)
-            //{
-            //    foreach (IWhisperInputMod wMod in m_WhisperInputMods)
-            //    {
-            //        wMod.ProcessMessage(e.Sender, e.Message);
-            //    }
-            //}
-            tcpRTBoxChat.AppendText(e.Sender + ": " + e.Message + "\n");
-        }
-        #endregion TCP Twitch Form Events
-
-        #region TCP Form Events
-        private void TCP_BtnJoin_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(tcpTBoxJoin.Text))
-            {
-                string sNewText = tcpTBoxJoin.Text.Trim().ToLower();
-                if (!m_sJoinedChannels.Contains(sNewText))
-                {
-                    m_sJoinedChannels.Add(sNewText);
-                    m_TwitchInstance.JoinChannel(sNewText);
-                    tcpBtnLeave.Enabled = true;
-
-                    tcpCBoxChannels.Items.Add(sNewText);
-                    tcpCBoxJoinedChannels.Items.Add(sNewText);
-                    tcpCBoxChannels.Enabled = true;
-                    tcpCBoxJoinedChannels.Enabled = true;
-
-                    if (tcpCBoxChannels.Items.Count == 1)
-                    {
-                        tcpCBoxChannels.SelectedIndex = 0;
-                    }
-                    if (tcpCBoxJoinedChannels.Items.Count == 1)
-                    {
-                        tcpCBoxJoinedChannels.SelectedIndex = 0;
-                    }
-                }
-                tcpTBoxJoin.Clear();
-            }
-        }
-        private void TCP_BtnLeave_Click(object sender, EventArgs e)
-        {
-            string sChannel = tcpCBoxChannels.Items[tcpCBoxChannels.SelectedIndex].ToString();
-            m_TwitchInstance.LeaveChannel(sChannel);
-
-            tcpCBoxChannels.Items.Remove(sChannel);
-            tcpCBoxJoinedChannels.Items.Remove(sChannel);
-            m_sJoinedChannels.Remove(sChannel);
 
 
-            if (tcpCBoxChannels.Items.Count == 0)
-            {
-                tcpCBoxChannels.Enabled = false;
-            }
-            else
-            {
-                tcpCBoxChannels.SelectedIndex = 0;
-            }
 
-            if (tcpCBoxJoinedChannels.Items.Count == 0)
-            {
-                tcpCBoxJoinedChannels.Enabled = false;
-            }
-            else
-            {
-                tcpCBoxJoinedChannels.SelectedIndex = 0;
-            }
-        }
-        private void TCP_RBtnChat_CheckedChanged(object sender, EventArgs e)
-        {
-            tcpCBoxJoinedChannels.Visible = true;
-            tcpTBoxWhisper.Visible = false;
-            tcpTBoxWhisper.Text = "Username to whisper";
-        }
-        private void TCP_RBtnWhisper_CheckedChanged(object sender, EventArgs e)
-        {
-            tcpCBoxJoinedChannels.Visible = false;
-            tcpTBoxWhisper.Visible = true;
-            tcpCBoxChannels.Text = "Select a channel";
-        }
-        private void TCP_TBoxWhisper_MouseClick(object sender, MouseEventArgs e)
-        {
-            tcpTBoxWhisper.Clear();
-        }
-        private void TCP_TBoxWhisper_Enter(object sender, EventArgs e)
-        {
-            tcpTBoxWhisper.Clear();
-        }
-        private void TCP_TBoxWhisper_Leave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(tcpTBoxWhisper.Text))
-            {
-                tcpTBoxWhisper.Text = "Username to whisper";
-            }
-        }
-        private void TCP_TBoxJoin_Enter(object sender, EventArgs e)
-        {
-            tcpTBoxJoin.Clear();
-        }
-        private void TCP_TBoxJoin_Leave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(tcpTBoxJoin.Text))
-            {
-                tcpTBoxJoin.Text = "Channel to join";
-            }
-        }
-        private void TCP_RTBoxChatOutput_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(tcpRTBoxChatOutput.Text))
-            {
-                string sMessage = tcpRTBoxChatOutput.Text.Trim();
-                m_sPreviousChatMessages.Add(sMessage);
-                tcpRTBoxChatOutput.Clear();
 
-                string sTarget = (tcpRBtnChat.Checked ? tcpCBoxJoinedChannels.SelectedItem.ToString() : tcpTBoxWhisper.Text);
-
-                if (tcpRBtnChat.Checked)
-                {
-                    m_TwitchInstance.SendMessage(sTarget, sMessage);
-                    tcpRTBoxChat.AppendText("#" + sTarget + "|(" + m_TwitchInstance.Username + "): " + sMessage + "\n");
-                }
-                else
-                {
-                    m_TwitchInstance.SendWhisper(sTarget, sMessage);
-                    tcpRTBoxChat.AppendText(m_TwitchInstance.Username + ": " + sMessage + "\n");
-                }
-                
-            }
-            
-        }
-        private void TCP_RTBoxChatOutput_KeyUp(object sender, KeyEventArgs e)
+        private void AutoLogin()
         {
-            if (e.KeyCode == Keys.Up && m_sPreviousChatMessages.Count > 0)
+            try
             {
-                if (m_iPreviousIndex == m_sPreviousChatMessages.Count)
-                {
-                    m_iPreviousIndex -= 1;
-                }
-                tcpRTBoxChatOutput.Text = m_sPreviousChatMessages[m_sPreviousChatMessages.Count - 1 - m_iPreviousIndex];
-                ++m_iPreviousIndex;
+                m_LoginData = LoadCredentials();
+                m_ConnectButton.Visible = !string.IsNullOrEmpty(m_LoginData.Username) && !string.IsNullOrEmpty(m_LoginData.OAuth);
+            }
+            catch (Exception e)
+            {
+                m_LoginData = SaveLoginData();
             }
         }
-        private void TCP_BtnConnect_Click(object sender, EventArgs e)
-        {
-            tcp_BtnConnect.Enabled = false;
-            ConnectTCP();
-        }
-        private void TCP_BtnDisconnect_Click(object sender, EventArgs e)
-        {
-            tcp_BtnConnect.Enabled = true;
-            tcpBtnDisconnect.Enabled = false;
-            DisconnectTCP();
-        }
-        #endregion TCP Form Events
-
-        private void ConnectTCP()
-        {
-            tcpBtnJoin.Enabled = false;
-            m_sJoinedChannels = new List<string>();
-            m_TwitchInstance.OnChannelIRCConnected += OnChannelIRCConnected;
-            m_TwitchInstance.OnChannelInput += OnChannelInput;
-            m_TwitchInstance.OnWhisperInput += OnWhisperInput;
-            m_TwitchInstance.OnChannelPart += OnChannelPart;
-            m_TwitchInstance.OnChannelEnter += OnChannelEnter;
-            m_TwitchInstance.StartConnection();
-        }
-        private void DisconnectTCP()
-        {
-            tcpBtnJoin.Enabled = false;
-            m_TwitchInstance.OnChannelInput -= OnChannelInput;
-            m_TwitchInstance.OnWhisperInput -= OnWhisperInput;
-            m_TwitchInstance.OnChannelPart -= OnChannelPart;
-            m_TwitchInstance.OnChannelEnter -= OnChannelEnter;
-            m_TwitchInstance.OnChannelIRCConnected -= OnChannelIRCConnected;
-            m_TwitchInstance.CloseConnection();
-        }
-        private void CloseTCP()
-        {
-            DisconnectTCP();
-            m_TwitchInstance.Close();
-        }
-        #endregion TCP
-
-        #region WebSocket
-
         private LoginData LoadCredentials()
         {
+            LoginData loginData = null;
             if (File.Exists($"{Environment.CurrentDirectory}/Data/Settings.json"))
             {
                 StreamReader sr = new StreamReader($"{Environment.CurrentDirectory}/Data/Settings.json");
                 string sContent = sr.ReadToEnd();
+                sr.Close();
 
-                LoginData loginData = JsonConvert.DeserializeObject<LoginData>(sContent);
-
-                if (string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.OAuth))
-                {
-                    return null;
-                }
-                return loginData;
+               loginData = JsonConvert.DeserializeObject<LoginData>(sContent);
             }
-            return null;
+            else
+            {
+                loginData = SaveLoginData();
+            }
+            return loginData;
+        }
+        private LoginData SaveLoginData(string sUsername = "", string sOAuth = "")
+        {
+            LoginData loginData = new LoginData(sUsername, sOAuth);
+            string sJSONContent = JsonConvert.SerializeObject(loginData, Formatting.Indented);
+
+            using (StreamWriter writer = new StreamWriter($"{Environment.CurrentDirectory}/Data/Settings.json", false))
+            {
+                writer.Write(sJSONContent);
+                writer.Flush();
+                writer.Close();
+            }
+            return loginData;
         }
         private void ConnectWeb()
         {
@@ -467,27 +94,102 @@ namespace TucxbotForm
         }
         private void DisconnectWeb()
         {
-            webBtnConnect.Enabled = true;
-            webBtnJoin.Enabled = false;
+            m_LeaveChannelButton.Visible = false;
+            m_ChannelLeaveCB.Items.Clear();
+            m_ChannelLeaveCB.ResetText();
+            m_ChannelLeaveCB.Visible = false;
+
+            m_ChannelMessageSelectCB.Items.Clear();
+            m_ChannelMessageSelectCB.ResetText();
+            m_ChannelGroup.Visible = false;
+
+            m_WhisperGroup.Visible = false;
+
+            m_EventGroup.Visible = false;
+
+            m_ConnectButton.Enabled = true;
+            m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
             UnRegisterWebEvents();
             m_TwitchClient?.Disconnect();
         }
         private void CloseWeb()
         {
-            if (m_TwitchClient != null)
-            {
-                m_TwitchClient.OnTwitchConnected -= OnTwitchClientConnected;
-            }
             DisconnectWeb();
         }
 
-        #region Web Twitch Form Events
-        private void OnTwitchClientConnected()
+        #region Mods
+        private void LoadMod()
         {
-            RegisterWebEvents();
-            webJoinLeaveGroup.Visible = true;
-        }
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            openFileDialog.Filter = "Mod Library Files (*.dll)|*.dll";
 
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string sFilePath = openFileDialog.FileName;
+                int iStartIndex = sFilePath.LastIndexOf('\\') + 1;
+                int iEndIndex = sFilePath.LastIndexOf('.');
+                string sFileName = sFilePath.Substring(iStartIndex, iEndIndex - iStartIndex);
+                Assembly assembly = Assembly.LoadFile(sFilePath);
+                foreach (Type type in assembly.GetTypes())
+                {
+                    if (typeof(IChatMessageMod).IsAssignableFrom(type))
+                    {
+                        if (m_ChannelMessageMods == null)
+                        {
+                            m_ChannelMessageMods = new Dictionary<string, IChatMessageMod>();
+                        }
+                        m_ChannelMessageMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IChatMessageMod);
+                        Console.WriteLine("Loading Channel Message Mod: {0} to the project!", sFileName);
+                    }
+                    else if (typeof(IWhisperMessageMod).IsAssignableFrom(type))
+                    {
+                        if (m_WhisperMessageMods == null)
+                        {
+                            m_WhisperMessageMods = new Dictionary<string, IWhisperMessageMod>();
+                        }
+                        m_WhisperMessageMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IWhisperMessageMod);
+                        Console.WriteLine("Loading Whisper Message Mod: {0} to the project!", sFileName);
+                    }
+                    else if (typeof(IOnSubscriberMod).IsAssignableFrom(type))
+                    {
+                        if (m_OnSubscriberMods == null)
+                        {
+                            m_OnSubscriberMods = new Dictionary<string, IOnSubscriberMod>();
+                        }
+                        m_OnSubscriberMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnSubscriberMod);
+                        Console.WriteLine("Loading OnSubscriber Mod: {0} to the project!", sFileName);
+                    }
+                }
+
+                m_UnloadModCB.Items.Add(sFileName);
+                m_UnloadModCB.SelectedIndex = 0;
+            }
+        }
+        private void ShutdownMods()
+        {
+            if (m_ChannelMessageMods != null)
+            {
+                foreach (KeyValuePair<string, IChatMessageMod> kvp in m_ChannelMessageMods)
+                {
+                    kvp.Value.Shutdown();
+                }
+            }
+            if (m_WhisperMessageMods != null)
+            {
+                foreach (KeyValuePair<string, IWhisperMessageMod> kvp in m_WhisperMessageMods)
+                {
+                    kvp.Value.Shutdown();
+                }
+            }
+            if (m_OnSubscriberMods != null)
+            {
+                foreach (KeyValuePair<string, IOnSubscriberMod> kvp in m_OnSubscriberMods)
+                {
+                    kvp.Value.Shutdown();
+                }
+            }
+        }
         private void RegisterWebEvents()
         {
             m_TwitchClient.OnWhisperMessageReceived += TwitchClient_OnWhisperMessageReceived;
@@ -496,18 +198,6 @@ namespace TucxbotForm
             m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
             m_TwitchClient.OnSubscriberEvent += TwitchClient_OnSubscriberEvent;
         }
-
-        private void TwitchClient_OnSubscriberEvent(object sender, OnSubscriberEventArgs e)
-        {
-            if (m_OnSubscriberMods != null)
-            {
-                foreach (IOnSubscriberMod mod in m_OnSubscriberMods)
-                {
-                    mod.Process(e.UserNotice);
-                }
-            }
-        }
-
         private void UnRegisterWebEvents()
         {
             if (m_TwitchClient != null)
@@ -516,152 +206,222 @@ namespace TucxbotForm
                 m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
                 m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
                 m_TwitchClient.OnSubscriberEvent -= TwitchClient_OnSubscriberEvent;
+                m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
             }
         }
+        #endregion Mods
 
+        #region Twitch Client Events
+        private void TwitchClient_OnTwitchClientConnected()
+        {
+            if (m_ConnectButton.InvokeRequired)
+            {
+                m_ConnectButton.Invoke(new Action(delegate { TwitchClient_OnTwitchClientConnected(); }));
+                return;
+            }
+            m_ConnectedState = CONNECTED_STATE.CONNECTED;
+            m_ConnectButton.Visible = false;
+            m_DisconnectButton.Visible = true;
+            m_WhisperGroup.Visible = true;
+            m_ChannelGroup.Visible = true;
+            RegisterWebEvents();
+        }
+        private void TwitchClient_OnLoginFailed()
+        {
+            m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
+            m_TwitchClient.OnTwitchLoginFailed -= TwitchClient_OnLoginFailed;
+            m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
+        }
+        private void TwitchClient_OnSubscriberEvent(object sender, OnSubscriberEventArgs e)
+        {
+            if (m_OnSubscriberMods != null)
+            {
+                foreach (KeyValuePair<string, IOnSubscriberMod> mod in m_OnSubscriberMods)
+                {
+                    mod.Value.Process(e.UserNotice);
+                }
+            }
+        }
         private void TwitchClient_OnBotJoinedChannelEvent(object sender, OnBotJoinedChannelEventArgs e)
         {
-            if (!webCBoxJoinedChannels.Items.Contains(e.Channel))
+            if (!m_ChannelLeaveCB.Items.Contains(e.Channel))
             {
-                if (webCBoxJoinedChannels.InvokeRequired)
+                if (m_ChannelLeaveCB.InvokeRequired)
                 {
-                    webCBoxJoinedChannels.Invoke(new Action(delegate { TwitchClient_OnBotJoinedChannelEvent(sender, e); }));
+                    m_ChannelLeaveCB.Invoke(new Action(delegate { TwitchClient_OnBotJoinedChannelEvent(sender, e); }));
                     return;
                 }
-                webCBoxJoinedChannels.Items.Add(e.Channel);
-                webCBoxJoinedChannels.SelectedIndex = 0;
-                webTBoxJoin.Clear();
-                webCBoxJoinedChannels.Visible = true;
-                webBtnLeave.Visible = true;
+                m_ChannelLeaveCB.Items.Add(e.Channel);
+                m_ChannelLeaveCB.SelectedIndex = 0;
+                m_ChannelJoinTB.Clear();
+                m_ChannelLeaveCB.Visible = true;
+                m_LeaveChannelButton.Visible = true;
 
-                webChatGroup.Visible = true;
-                webCBoxPublicChannels.Items.Add(e.Channel);
-                webCBoxPublicChannels.SelectedIndex = 0;
+                m_ChannelGroup.Visible = true;
+                m_ChannelMessageSelectCB.Items.Add(e.Channel);
+                m_ChannelMessageSelectCB.SelectedIndex = 0;
+
+                if (!m_EventGroup.Visible)
+                {
+                    if (m_EventGroup.InvokeRequired)
+                    {
+                        m_EventGroup.Invoke(new Action(delegate { TwitchClient_OnBotJoinedChannelEvent(sender, e); }));
+                        return;
+                    }
+                    m_EventGroup.Visible = true;
+                }
             }
         }
         private void TwitchClient_OnUserLeaveEvent(object sender, OnUserLeaveEventArgs e)
         {
-            if (webCBoxJoinedChannels.InvokeRequired)
+            if (m_ChannelLeaveCB.InvokeRequired)
             {
-                webCBoxJoinedChannels.Invoke(new Action(delegate { TwitchClient_OnUserLeaveEvent(sender, e); }));
+                m_ChannelLeaveCB.Invoke(new Action(delegate { TwitchClient_OnUserLeaveEvent(sender, e); }));
                 return;
             }
 
             if (e.Username == m_TwitchClient.Credentials.TwitchUsername)
             {
-                webCBoxJoinedChannels.Items.Remove(e.Channel);
+                m_ChannelLeaveCB.Items.Remove(e.Channel);
 
-                webCBoxJoinedChannels.Visible = webCBoxJoinedChannels.Items.Count > 0;
-                webBtnLeave.Visible = webCBoxJoinedChannels.Items.Count > 0;
+                m_ChannelLeaveCB.Visible = m_ChannelLeaveCB.Items.Count > 0;
+                m_LeaveChannelButton.Visible = m_ChannelLeaveCB.Items.Count > 0;
 
-                webCBoxPublicChannels.Items.Remove(e.Channel);
-                webChatGroup.Visible = webCBoxJoinedChannels.Items.Count > 0;
+                m_ChannelMessageSelectCB.Items.Remove(e.Channel);
             }
         }
-
         private void TwitchClient_OnChatMessageReceived(object sender, OnChatMessageReceivedEventArgs e)
         {
-            if (webRTBoxTwitchInput.InvokeRequired)
+            if (m_ChannelOutputTB.InvokeRequired)
             {
-                webRTBoxTwitchInput.Invoke(new Action(delegate { TwitchClient_OnChatMessageReceived(sender, e); }));
+                m_ChannelOutputTB.Invoke(new Action(delegate { TwitchClient_OnChatMessageReceived(sender, e); }));
                 return;
             }
-            webRTBoxTwitchInput.Text += $"#{e.ChatMessage.Channel}| {e.ChatMessage.Username}: {e.ChatMessage.Message}\n";
+            m_ChannelOutputTB.Text += $"#{e.ChatMessage.Channel}| {e.ChatMessage.Username}: {e.ChatMessage.Message}\n";
 
             if (m_ChannelMessageMods != null)
             {
-                foreach(IChatMessageMod mod in m_ChannelMessageMods)
+                foreach(KeyValuePair < string, IChatMessageMod> mod in m_ChannelMessageMods)
                 {
-                    mod.Process(e.ChatMessage);
+                    mod.Value.Process(e.ChatMessage);
                 }
             }
             Console.WriteLine($"#{e.ChatMessage.Channel}\n{e.ChatMessage.Username}: {e.ChatMessage.Message}");
         }
         private void TwitchClient_OnWhisperMessageReceived(object sender, OnWhisperMessageReceivedEventArgs e)
         {
-            if (webRTBoxTwitchInput.InvokeRequired)
+            if (m_WhisperOutputTB.InvokeRequired)
             {
-                webRTBoxTwitchInput.Invoke(new Action(delegate { TwitchClient_OnWhisperMessageReceived(sender, e); }));
+                m_WhisperOutputTB.Invoke(new Action(delegate { TwitchClient_OnWhisperMessageReceived(sender, e); }));
                 return;
             }
-            webRTBoxTwitchInput.Text += $"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}\n";
+            m_WhisperOutputTB.Text += $"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}\n";
 
             if (m_WhisperMessageMods != null)
             {
-                foreach (IWhisperMessageMod mod in m_WhisperMessageMods)
+                foreach (KeyValuePair<string, IWhisperMessageMod> mod in m_WhisperMessageMods)
                 {
-                    mod.Process(e.WhisperMessage);
+                    mod.Value.Process(e.WhisperMessage);
                 }
             }
             Console.WriteLine($"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}");
         }
+        #endregion Twitch Client Events
 
-
-
-        #endregion Web Twitch Form Events
-
-        #region Web Form Events
-        private void Web_BtnConnect_Click(object sender, EventArgs e)
+        #region Connect Group
+        private void LoginButton_Click(object sender, EventArgs e)
         {
+            string sUsername = Microsoft.VisualBasic.Interaction.InputBox($"Please enter your bot\'s username:", "Login Information", XPos: Screen.PrimaryScreen.WorkingArea.Width / 2, YPos: Screen.PrimaryScreen.WorkingArea.Height / 2).ToLower();
+            string sOAuth = Microsoft.VisualBasic.Interaction.InputBox($"Please enter your bot\'s OAuth Key, this can be found here: https://twitchapps.com/tmi/", "Login Information", XPos: Screen.PrimaryScreen.WorkingArea.Width / 2, YPos: Screen.PrimaryScreen.WorkingArea.Height / 2);
+
+            m_LoginData = SaveLoginData(sUsername, sOAuth);
+
+            if (!string.IsNullOrEmpty(sUsername) && !string.IsNullOrEmpty(sOAuth))
+            {
+                AutoLogin();
+            }
+        }
+        private void ConnectButton_Click(object sender, EventArgs e)
+        {
+            m_TwitchClient = TwitchClient.GetInstance(new IRCCredentials(m_LoginData.Username, m_LoginData.OAuth));
+
+            if (m_TwitchClient != null)
+            {
+                if (m_ConnectedState == CONNECTED_STATE.NOT_CONNECTED)
+                {
+                    m_ConnectedState = CONNECTED_STATE.ATTEMPTING_CONNECTION;
+                    m_TwitchClient.OnTwitchLoginFailed += TwitchClient_OnLoginFailed;
+                    m_TwitchClient.OnTwitchConnected += TwitchClient_OnTwitchClientConnected;
+                }
+            }
+
             m_TwitchClient?.Connect();
-            webBtnConnect.Enabled = false;
+
         }
-        private void Web_BtnJoin_Click(object sender, EventArgs e)
+        private void DisconnectButton_Click(object sender, EventArgs e)
         {
-            m_TwitchClient?.JoinChannel(webTBoxJoin.Text);
+            CloseWeb();
+            m_DisconnectButton.Visible = false;
+            m_ConnectButton.Visible = true;
         }
-        private void Web_TBoxJoin_Leave(object sender, EventArgs e)
+        #endregion Connect Group
+
+        #region Whisper Group
+        private void WhisperInputTB_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (string.IsNullOrEmpty(webTBoxJoin.Text))
+            if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(m_WhisperInputTB.Text))
             {
-                webTBoxJoin.Text = "Channel to join";
+                string sTarget = m_WhisperUserTB.Text;
+                string sMessage = m_WhisperInputTB.Text.Trim().Replace("\n", "");
+                m_WhisperInputTB.Clear();
+
+                m_TwitchClient.SendWhisperMessage(sTarget, sMessage);
+                m_WhisperOutputTB.AppendText($"{m_TwitchClient.Credentials.TwitchUsername} : {sMessage}\n");
             }
         }
-        private void Web_TBoxJoin_Enter(object sender, EventArgs e)
+        #endregion Whisper Group
+
+        #region Public Twitch Chat Group
+        private void JoinChannelButton_Click(object sender, EventArgs e)
         {
-            webTBoxJoin.Clear();
+            m_TwitchClient?.JoinChannel(m_ChannelJoinTB.Text);
         }
-        private void Web_BtnLeave_Click(object sender, EventArgs e)
+        private void JoinChannelTB_Leave(object sender, EventArgs e)
         {
-            if (webCBoxJoinedChannels.Items.Count > 0)
+            if (string.IsNullOrEmpty(m_ChannelJoinTB.Text))
             {
-                m_TwitchClient.LeaveChannel(webCBoxJoinedChannels.Items[webCBoxJoinedChannels.SelectedIndex].ToString());
+                m_ChannelJoinTB.Text = "Channel to join";
             }
         }
-        private void Web_RBtnPublicChat_CheckedChanged(object sender, EventArgs e)
+        private void JoinChannelTB_Enter(object sender, EventArgs e)
         {
-            webCBoxPublicChannels.Visible = true;
-            webTBoxWhisper.Visible = false;
+            m_ChannelJoinTB.Clear();
         }
-        private void Web_RBtnWhisper_CheckedChanged(object sender, EventArgs e)
+        private void LeaveChannelButton_Click(object sender, EventArgs e)
         {
-            webCBoxPublicChannels.Visible = false;
-            webTBoxWhisper.Visible = true;
-        }
-        private void Web_RTBoxTwitchOutput_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(webRTBoxTwitchOutput.Text))
+            if (m_ChannelLeaveCB.Items.Count > 0)
             {
-                string sMessage = webRTBoxTwitchOutput.Text.Trim().Replace("\n","");
+                m_TwitchClient.LeaveChannel(m_ChannelLeaveCB.Items[m_ChannelLeaveCB.SelectedIndex].ToString());
+            }
+        }
+        private void ChannelMessageInput_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(m_ChannelInputTB.Text))
+            {
+                string sMessage = m_ChannelInputTB.Text.Trim().Replace("\n", "");
                 m_sPreviousChatMessages.Add(sMessage);
-                webRTBoxTwitchOutput.Clear();
+                m_ChannelInputTB.Clear();
 
-                string sTarget = (webRBtnPublicChat.Checked ? webCBoxPublicChannels.SelectedItem.ToString() : webTBoxWhisper.Text);
+                string sTarget = m_ChannelMessageSelectCB.SelectedItem.ToString();
 
-                if (webRBtnPublicChat.Checked)
-                {
-                    m_TwitchClient.SendChatMessage(sTarget, sMessage);
-                    webRTBoxTwitchInput.AppendText($"#{sTarget}|({m_TwitchClient.Credentials.TwitchUsername}): {sMessage}\n");
-                }
-                else
-                {
-                    m_TwitchClient.SendWhisperMessage(sTarget, sMessage);
-                    webRTBoxTwitchInput.AppendText($"{m_TwitchClient.Credentials.TwitchUsername} : {sMessage}\n");
-                }
+                m_TwitchClient.SendChatMessage(sTarget, sMessage);
+                m_ChannelOutputTB.AppendText($"#{sTarget}|({m_TwitchClient.Credentials.TwitchUsername}): {sMessage}\n");
+
+
                 m_iPreviousIndex = 0;
             }
         }
-        private void Web_RTBoxTwitchOutput_KeyUp(object sender, KeyEventArgs e)
+        private void ChannelMessageInput_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Up && m_sPreviousChatMessages.Count > 0)
             {
@@ -669,14 +429,58 @@ namespace TucxbotForm
                 {
                     m_iPreviousIndex -= 1;
                 }
-                webRTBoxTwitchOutput.Text = m_sPreviousChatMessages[m_sPreviousChatMessages.Count - 1 - m_iPreviousIndex];
+                m_ChannelInputTB.Text = m_sPreviousChatMessages[m_sPreviousChatMessages.Count - 1 - m_iPreviousIndex];
                 ++m_iPreviousIndex;
             }
         }
-        #endregion region Web Form Events
+        #endregion Public Twitch Chat Group
 
-        #endregion WebSocket
+        #region Mod Group
+        private void LoadModButton_Click(object sender, EventArgs e)
+        {
+            LoadMod();
+        }
+        private void UnloadModButton_Click(object sender, EventArgs e)
+        {
+            if (m_UnloadModCB.Items.Count > 0)
+            {
+                string sModName = m_UnloadModCB.Items[m_UnloadModCB.SelectedIndex].ToString();
+                if (m_ChannelMessageMods != null)
+                {
+                    if (m_ChannelMessageMods.ContainsKey(sModName))
+                    {
+                        m_ChannelMessageMods[sModName].Shutdown();
+                        m_ChannelMessageMods.Remove(sModName);
+                    }
+                }
+                if (m_WhisperMessageMods != null)
+                {
+                    if (m_WhisperMessageMods.ContainsKey(sModName))
+                    {
+                        m_WhisperMessageMods[sModName].Shutdown();
+                        m_WhisperMessageMods.Remove(sModName);
+                    }
+                }
+                if (m_OnSubscriberMods != null)
+                {
+                    if (m_OnSubscriberMods.ContainsKey(sModName))
+                    {
+                        m_OnSubscriberMods[sModName].Shutdown();
+                        m_OnSubscriberMods.Remove(sModName);
+                    }
+                }
+                m_UnloadModCB.Items.Remove(sModName);
+            }
+        }
+        #endregion Mod Group
 
 
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            ShutdownMods();
+            CloseWeb();
+        }
+
+        
     }
 }

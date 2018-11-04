@@ -46,11 +46,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Twitch TCP\ChannelGateInteractionEventArgs.cs" />
-    <Compile Include="Twitch TCP\ChatInputEventArgs.cs" />
-    <Compile Include="Twitch TCP\IChannelInputMod.cs" />
-    <Compile Include="Twitch TCP\IChannelJoinMod.cs" />
-    <Compile Include="Twitch TCP\IRCConnection.cs" />
     <Compile Include="Twitch Websocket\Containers\Badges.cs" />
     <Compile Include="Twitch Websocket\Containers\ChatMessage.cs" />
     <Compile Include="Twitch Websocket\Containers\Emote.cs" />
@@ -60,10 +55,7 @@
     <Compile Include="Twitch Websocket\Event Handlers\OnBotJoinedChannelEventArgs.cs" />
     <Compile Include="Twitch Websocket\Event Handlers\OnUserLeaveEventArgs.cs" />
     <Compile Include="Twitch Websocket\IRC\IRCHelper.cs" />
-    <Compile Include="Twitch TCP\IWhisperInputMod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Twitch TCP\Settings.cs" />
-    <Compile Include="Twitch TCP\Twitch.cs" />
     <Compile Include="Twitch Websocket\IRC\IRCParser.cs" />
     <Compile Include="Twitch Websocket\Event Handlers\OnChatMessageReceivedEventArgs.cs" />
     <Compile Include="Twitch Websocket\Event Handlers\OnSubscriberEventArgs.cs" />
