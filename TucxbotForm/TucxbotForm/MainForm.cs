@@ -285,6 +285,10 @@ namespace TucxbotForm
                 m_ChannelLeaveCB.Items.Remove(e.Channel);
 
                 m_ChannelLeaveCB.Visible = m_ChannelLeaveCB.Items.Count > 0;
+                if (m_ChannelLeaveCB.Visible)
+                {
+                    m_ChannelLeaveCB.SelectedIndex = 0;
+                }
                 m_LeaveChannelButton.Visible = m_ChannelLeaveCB.Items.Count > 0;
 
                 m_ChannelMessageSelectCB.Items.Remove(e.Channel);
