@@ -11,12 +11,14 @@
         public EmoteCollection Emotes { get; protected set; }
         public string Message { get; protected set; }
         public bool Mod { get; protected set; }
-        public enum SubscriptionType { None, Sub, Resub, Charity }
+        public enum SubscriptionType { None, Sub, Resub, Charity, Gift }
         public SubscriptionType MessageID { get; protected set; }
         public int ResubConsecutiveMonths { get; protected set; }
         public enum SubscriptionPlan { None, Prime, Tier1, Tier2, Tier3 }
         public SubscriptionPlan SubPlan { get; protected set; } = SubscriptionPlan.None;
         public string SubscriptionPlanName { get; protected set; }
+        public string GiftedSubscriptionRecipientName { get; protected set; }
+        public int GiftedSubscriptionsCount { get; protected set; }
         public int ChannelID { get; protected set; }
         public bool Subscriber { get; protected set; }
         public string SystemMessage { get; protected set; }
@@ -69,6 +71,11 @@
                         MessageID = SubscriptionType.Resub;
                         break;
                     }
+                case "subgift":
+                    {
+                        MessageID = SubscriptionType.Gift;
+                        break;
+                    }
                 case "charity":
                     {
                         MessageID = SubscriptionType.Charity;
@@ -76,7 +83,11 @@
                     }
             }
             // Resub Consecutive Months
-            ResubConsecutiveMonths = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-months"));
+            int iResubCount = 0;
+            if (int.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-months"), out iResubCount))
+            {
+                ResubConsecutiveMonths = iResubCount;
+            }
 
             // Sub Plan
             string sSubPlanRaw = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sub-plan");
@@ -106,7 +117,14 @@
                         break;
                     }
             }
-
+            // Sub Gift Recipient Name
+            GiftedSubscriptionRecipientName = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-recipient-display-name");
+            // Gifted Subscription Count
+            int iGiftedSubCount = 0;
+            if (int.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sender-count"), out iGiftedSubCount))
+            {
+                GiftedSubscriptionsCount = iGiftedSubCount + 1;
+            }
             // Sub Plan Name
             SubscriptionPlanName = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sub-plan-name").Replace("\\s", " ");
             // Channel ID (Room ID)
