@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 using Twitch_Websocket;
 using Twitch_Websocket.Mod_Interfaces;
 using System.Threading;
+using Microsoft.VisualBasic;
+using System.Windows.Forms;
+
+
 namespace QuizGameMod
 {
-    class GameController : IWhisperMessageMod, IChatMessageMod
+    public class GameController : IWhisperMessageMod, IChatMessageMod
     {
         public Action<string, string, int> OnWinnerAchieved;
 
@@ -22,6 +26,7 @@ namespace QuizGameMod
         protected const int m_HintCooldown = 30000;
         protected const int m_GameCooldown = 150000;
 
+        protected QuizContentLoader m_ContentLoader;
         protected Dictionary<string, QuizGame> m_QuizGames;
         protected Dictionary<string, List<string>> m_SubscribedUsers;
         protected Thread m_MainThread;
@@ -32,10 +37,37 @@ namespace QuizGameMod
         {
             m_QuizGames = new Dictionary<string, QuizGame>();
             m_SubscribedUsers = new Dictionary<string, List<string>>();
-            m_bIsActive = true;
-            m_MainThread = new Thread(MainThreadFunction);
-            m_LockObject = new object();
-            m_MainThread.Start();
+            LoadData();
+
+            if (m_bIsActive)
+            {
+                m_MainThread = new Thread(MainThreadFunction);
+                m_LockObject = new object();
+                m_MainThread.Start();
+            }
+        }
+
+        protected void LoadData()
+        {
+            m_bIsActive = false;
+
+            string sMessage = "Please enter how you want your quiz content to be loaded: ";
+            string[] sLoadTypes = Enum.GetNames(typeof(QuizContentLoader.LoadType));
+            for (int i = 0; i < sLoadTypes.Length; ++i)
+            {
+                sMessage += $"\nFor {sLoadTypes[i]}, type {i}";
+            }
+
+
+            string sResponse = Interaction.InputBox(sMessage, "Select Content Load Type");
+            QuizContentLoader.LoadType contentLoadType;
+
+            if (Enum.TryParse<QuizContentLoader.LoadType>(sResponse, out contentLoadType))
+            {
+                m_ContentLoader = new QuizContentLoader(contentLoadType);
+            }
+
+            m_bIsActive = m_ContentLoader != null ? m_ContentLoader.LoadedContent : false;
         }
 
         public virtual void Process(WhisperMessage whisperMessage)
@@ -176,13 +208,13 @@ namespace QuizGameMod
                         if (kvp.Value.ReadyForNewGame())
                         {
                             // Get a new question for this quiz game.
-                            Tuple<string, string, int> newGameQuestion = GetNewQuestion(kvp.Key);
+                            QuizGame_Info newGameQuestion = GetNewQuestion(kvp.Key);
 
                             // Set the hint cooldown
                             kvp.Value.SetHintCooldown(m_HintCooldown);
 
                             // Set the quiz up
-                            kvp.Value.StartNewGame(new Tuple<string, string>(newGameQuestion.Item1, newGameQuestion.Item2), newGameQuestion.Item3);
+                            kvp.Value.StartNewGame(newGameQuestion);
 
                             // Send message in channel
                             SendNewGameMessage(kvp.Key);
@@ -235,7 +267,7 @@ namespace QuizGameMod
             TwitchClient.GetInstance().SendChatMessage(sChannel, sMessage);
         }
 
-        protected virtual Tuple<string, string, int> GetNewQuestion(string sChannel)
+        protected virtual QuizGame_Info GetNewQuestion(string sChannel)
         {
             throw new NotImplementedException();
         }

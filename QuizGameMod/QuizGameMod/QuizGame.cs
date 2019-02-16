@@ -7,20 +7,20 @@ using Twitch_Websocket;
 
 namespace QuizGameMod
 {
-    class QuizGame
+    public class QuizGame
     {
         public string Answer
         {
             get
             {
-                return m_CurrentGameContent?.Item2;
+                return m_CurrentGameContent.Answer;
             }
         }
         public string Instructions
         {
             get
             {
-                return m_CurrentGameContent?.Item1;
+                return m_CurrentGameContent?.Question;
             }
         }
         public List<string> Winners
@@ -31,7 +31,7 @@ namespace QuizGameMod
             }
         }
 
-        protected Tuple<string, string> m_CurrentGameContent;
+        protected QuizGame_Info m_CurrentGameContent;
         protected List<string> m_CurrentWinners;
         protected int m_iNumberOfWinners;
         protected int m_iCurrentCooldown;
@@ -43,12 +43,12 @@ namespace QuizGameMod
             m_CurrentWinners = new List<string>();
         }
 
-        public void StartNewGame(Tuple<string, string> content, int numberOfWinners = 1)
+        public void StartNewGame(QuizGame_Info quizGame_Info)
         {
             if (m_CurrentGameContent == null)
             {
-                m_CurrentGameContent = content;
-                m_iNumberOfWinners = numberOfWinners;
+                m_CurrentGameContent = quizGame_Info;
+                m_iNumberOfWinners = quizGame_Info.NumberOfWinners;
                 m_CurrentWinners.Clear();
             }
         }
@@ -57,7 +57,7 @@ namespace QuizGameMod
         {
             if (m_CurrentGameContent != null)
             {
-                if (userAnswer.ToLower() == m_CurrentGameContent.Item2.ToLower())
+                if (userAnswer.ToLower() == m_CurrentGameContent?.Answer.ToLower())
                 {
                     return true;
                 }
@@ -117,7 +117,7 @@ namespace QuizGameMod
 
         public virtual string GetHint()
         {
-            return m_CurrentGameContent?.Item2;
+            return m_CurrentGameContent?.Answer;
         }
     }
 }
