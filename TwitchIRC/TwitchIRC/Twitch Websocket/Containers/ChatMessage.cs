@@ -31,10 +31,12 @@ namespace Twitch_Websocket
         {
             // Raw IRC string
             Raw = sIRCRaw;
-
             // Channel notice was sent in
             Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1, sIRCRaw.IndexOf(' ', sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1) - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1));
-
+            // Bits (Total)
+            int iNumBits = 0;
+            Int32.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "bits"), out iNumBits);
+            Bits = iNumBits;
             // Badges
             Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
             // Color

@@ -24,6 +24,8 @@ namespace TucxbotForm
         private Dictionary<string, IChatMessageMod> m_ChannelMessageMods;
         private Dictionary<string, IWhisperMessageMod> m_WhisperMessageMods;
         private Dictionary<string, IOnSubscriberMod> m_OnSubscriberMods;
+        private Dictionary<string, IOnUserJoinedMod> m_OnUserJoinedMods;
+        private Dictionary<string, IOnUserLeaveMod> m_OnUserLeaveMods;
         private enum CONNECTED_STATE
         {
             NOT_CONNECTED,
@@ -41,10 +43,6 @@ namespace TucxbotForm
             m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
             AutoLogin();
         }
-
-
-
-
 
         private void AutoLogin()
         {
@@ -160,6 +158,24 @@ namespace TucxbotForm
                         m_OnSubscriberMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnSubscriberMod);
                         Console.WriteLine("Loading OnSubscriber Mod: {0} to the project!", sFileName);
                     }
+                    else if (typeof(IOnUserJoinedMod).IsAssignableFrom(type))
+                    {
+                        if (m_OnUserJoinedMods == null)
+                        {
+                            m_OnUserJoinedMods = new Dictionary<string, IOnUserJoinedMod>();
+                        }
+                        m_OnUserJoinedMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnUserJoinedMod);
+                        Console.WriteLine("Loading OnUserJoined Mod: {0} to the project!", sFileName);
+                    }
+                    else if (typeof(IOnUserLeaveMod).IsAssignableFrom(type))
+                    {
+                        if (m_OnUserLeaveMods == null)
+                        {
+                            m_OnUserLeaveMods = new Dictionary<string, IOnUserLeaveMod>();
+                        }
+                        m_OnUserLeaveMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnUserLeaveMod);
+                        Console.WriteLine("Loading OnUserLeave Mod: {0} to the project!", sFileName);
+                    }
                 }
 
                 m_UnloadModCB.Items.Add(sFileName);
@@ -197,6 +213,7 @@ namespace TucxbotForm
             m_TwitchClient.OnBotJoinedChannelEvent += TwitchClient_OnBotJoinedChannelEvent;
             m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
             m_TwitchClient.OnSubscriberEvent += TwitchClient_OnSubscriberEvent;
+            m_TwitchClient.OnUserJoinedEvent += TwitchClient_OnUserJoinedEvent;
         }
         private void UnRegisterWebEvents()
         {
@@ -207,6 +224,7 @@ namespace TucxbotForm
                 m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
                 m_TwitchClient.OnSubscriberEvent -= TwitchClient_OnSubscriberEvent;
                 m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
+                m_TwitchClient.OnUserJoinedEvent -= TwitchClient_OnUserJoinedEvent;
             }
         }
         #endregion Mods
@@ -329,6 +347,16 @@ namespace TucxbotForm
                 }
             }
             Console.WriteLine($"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}");
+        }
+        private void TwitchClient_OnUserJoinedEvent(object sender, OnUserJoinedEventArgs e)
+        {
+            if (m_OnUserJoinedMods != null)
+            {
+                foreach(KeyValuePair<string, IOnUserJoinedMod> mod in m_OnUserJoinedMods)
+                {
+                    mod.Value.Process(e.UserState);
+                }
+            }
         }
         #endregion Twitch Client Events
 
@@ -473,6 +501,23 @@ namespace TucxbotForm
                         m_OnSubscriberMods.Remove(sModName);
                     }
                 }
+                if (m_OnUserJoinedMods != null)
+                {
+                    if (m_OnUserJoinedMods.ContainsKey(sModName))
+                    {
+                        m_OnUserJoinedMods[sModName].Shutdown();
+                        m_OnUserJoinedMods.Remove(sModName);
+                    }
+                }
+                if (m_OnUserLeaveMods != null)
+                {
+                    if (m_OnUserLeaveMods.ContainsKey(sModName))
+                    {
+                        m_OnUserLeaveMods[sModName].Shutdown();
+                        m_OnUserLeaveMods.Remove(sModName);
+                    }
+                }
+
                 m_UnloadModCB.Items.Remove(sModName);
             }
         }
