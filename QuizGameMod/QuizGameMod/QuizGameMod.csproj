@@ -48,6 +48,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseHandler.cs" />
     <Compile Include="GameController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuizContentLoader.cs" />

@@ -15,11 +15,6 @@
             if (m_Instance == null)
             {
                 m_Instance = new TwitchClient(twitchCredentials);
-
-                if (!m_bInitialized)
-                {
-                    m_Instance = null;
-                }
             }
             return m_Instance;
         }
@@ -42,7 +37,21 @@
 
         private void Initialize()
         {
+            m_Client = new WebSocket($"ws://{Credentials.TwitchHost}:{Credentials.TwitchPort}");
+            m_Client.OnOpen += OnClientConnected;
+            m_Client.OnMessage += OnClientReceivedMessage;
+            m_Client.OnClose += OnClientDisconnected;
+            m_Client.OnError += OnClientError;
             m_sChannelsJoined = new List<string>();
+            m_bInitialized = true;
+        }
+
+        private void Cleanup()
+        {
+            m_Client.OnOpen    -= OnClientConnected;
+            m_Client.OnMessage -= OnClientReceivedMessage;
+            m_Client.OnClose   -= OnClientDisconnected;
+            m_Client.OnError   -= OnClientError;
         }
 
         private TwitchClient(IRCCredentials twitchCredentials)
@@ -61,13 +70,6 @@
             }
 
             Credentials = twitchCredentials;
-            m_Client = new WebSocket($"ws://{Credentials.TwitchHost}:{Credentials.TwitchPort}");
-            m_Client.OnOpen += OnClientConnected;
-            m_Client.OnMessage += OnClientReceivedMessage;
-            m_Client.OnClose += OnClientDisconnected;
-            m_Client.OnError += OnClientError;
-            Initialize();
-            m_bInitialized = true;
         }
 
         #region Client Connection Functions / Connection Event Handlers
@@ -87,13 +89,18 @@
         }
         private void OnClientError(object sender, ErrorEventArgs e)
         {
-            Reconnect();
-            System.Threading.Thread.Sleep(2000);
+            Console.WriteLine(e.Message);
+            //Reconnect();
+            //System.Threading.Thread.Sleep(2000);
         }
 
         public void Connect()
         {
-            m_Client.Connect();
+            if (!m_bInitialized)
+            {
+                Initialize();
+                m_Client.Connect();
+            }  
         }
         public void Disconnect()
         {
@@ -103,16 +110,11 @@
                 {
                     LeaveChannel(m_sChannelsJoined[i]);
                 }
+                Cleanup();
                 m_Client.Close();
+                ((IDisposable)m_Client).Dispose();
+                m_bInitialized = false;
             });
-        }
-        public void Reconnect()
-        {
-            if (m_Client.IsAlive)
-            {
-                m_Client.Close();
-            }
-            m_Client.Connect();
         }
         #endregion Client Connection Functions / Connection Event Handlers
 

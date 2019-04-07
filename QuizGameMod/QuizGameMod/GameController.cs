@@ -269,7 +269,7 @@ namespace QuizGameMod
 
         protected virtual QuizGame_Info GetNewQuestion(string sChannel)
         {
-            throw new NotImplementedException();
+            return m_ContentLoader.GetNewQuestion(sChannel);
         }
     }
 }
