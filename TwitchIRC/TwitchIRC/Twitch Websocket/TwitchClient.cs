@@ -33,6 +33,7 @@
         public event EventHandler<OnWhisperMessageReceivedEventArgs> OnWhisperMessageReceived;
         public event EventHandler<OnUserLeaveEventArgs> OnUserLeaveEvent;
         public event EventHandler<OnBotJoinedChannelEventArgs> OnBotJoinedChannelEvent;
+        public event EventHandler<OnUserJoinedEventArgs> OnUserJoinedEvent;
         #endregion Events
 
         private WebSocket m_Client;
@@ -82,7 +83,7 @@
         }
         private void OnClientDisconnected(object sender, CloseEventArgs e)
         {
-
+            throw new NotImplementedException();
         }
         private void OnClientError(object sender, ErrorEventArgs e)
         {
@@ -104,8 +105,6 @@
                 }
                 m_Client.Close();
             });
-            //m_Instance = null;
-            //m_bInitialized = false;
         }
         public void Reconnect()
         {
@@ -192,19 +191,14 @@
                         return;
                     }
                     #endregion PRIVMSG
-                    #region JOIN
-                    else if (sMessageType == "JOIN")
-                    {
-                        // TODO: USER JOINED CHANNEL
-                    }
-                    #endregion JOIN
                     #region PART
                     else if (sMessageType == "PART")
                     {
                         // USER LEFT CHANNEL
                         //:tucxbot!tucxbot@tucxbot.tmi.twitch.tv PART #sirtucx
                         string sUsername = sIRCRaw.Substring(1, sIRCRaw.IndexOf('!') - 1);
-                        OnUserLeaveEvent?.Invoke(this, new OnUserLeaveEventArgs(sUsername, sChannel));
+                        OnUserLeaveEventArgs onUserLeaveEventArgs = new OnUserLeaveEventArgs(sUsername, sChannel);
+                        OnUserLeaveEvent?.Invoke(this, onUserLeaveEventArgs);
 
                         if (sUsername == Credentials.TwitchUsername && m_sChannelsJoined.Contains(sChannel))
                         {
@@ -265,7 +259,11 @@
                     #region USERSTATE
                     else if (sMessageType == "USERSTATE")
                     {
-                        // TODO: USER STATE CHANGED
+                        // USER JOINED CHANNEL
+                        // Example:  @badges=staff/1;color=#0D4200;display-name=ronni;emote-sets=0,33,50,237,793,2126,3517,4578,5569,9400,10337,12239;mod=1;subscriber=1;turbo=1;user-type=staff :tmi.twitch.tv USERSTATE #dallas
+                        UserState userState = new UserState(sIRCRaw);
+                        OnUserJoinedEventArgs onUserJoinedEventArgs = new OnUserJoinedEventArgs(userState);
+                        OnUserJoinedEvent?.Invoke(this, onUserJoinedEventArgs);
                     }
                     #endregion USERSTATE
                     #region CLEARCHAT
