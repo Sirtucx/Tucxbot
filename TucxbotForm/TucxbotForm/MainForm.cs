@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
 using System.IO;
-using Twitch_Websocket;
-using Twitch_Websocket.Mod_Interfaces;
 using Newtonsoft.Json;
+using Twitch.Containers;
+using Twitch.Core;
+using Twitch.Events;
+using Twitch.Interfaces;
 
 namespace TucxbotForm
 {
@@ -37,7 +33,6 @@ namespace TucxbotForm
 
         public MainForm()
         {
-            
             InitializeComponent();
             m_sPreviousChatMessages = new List<string>();
             m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
@@ -208,21 +203,26 @@ namespace TucxbotForm
         }
         private void RegisterWebEvents()
         {
+            TestDelegate test = TwitchClient_OnChatMessageReceived;
             m_TwitchClient.OnWhisperMessageReceived += TwitchClient_OnWhisperMessageReceived;
             m_TwitchClient.OnChatMessageReceived += TwitchClient_OnChatMessageReceived;
-            m_TwitchClient.OnBotJoinedChannelEvent += TwitchClient_OnBotJoinedChannelEvent;
+            m_TwitchClient.OnBotJoinedChannel += TwitchClientOnBotJoinedChannel;
             m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
-            m_TwitchClient.OnSubscriberEvent += TwitchClient_OnSubscriberEvent;
+            m_TwitchClient.OnSubscriptionReceived += TwitchClientOnSubscriptionReceived;
             m_TwitchClient.OnUserJoinedEvent += TwitchClient_OnUserJoinedEvent;
         }
+
+        public delegate void TestDelegate(object sender, OnChatMessageReceivedEventArgs arg);
+
+        
         private void UnRegisterWebEvents()
         {
             if (m_TwitchClient != null)
             {
                 m_TwitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
                 m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
-                m_TwitchClient.OnBotJoinedChannelEvent -= TwitchClient_OnBotJoinedChannelEvent;
-                m_TwitchClient.OnSubscriberEvent -= TwitchClient_OnSubscriberEvent;
+                m_TwitchClient.OnBotJoinedChannel -= TwitchClientOnBotJoinedChannel;
+                m_TwitchClient.OnSubscriptionReceived -= TwitchClientOnSubscriptionReceived;
                 m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
                 m_TwitchClient.OnUserJoinedEvent -= TwitchClient_OnUserJoinedEvent;
             }
@@ -250,7 +250,7 @@ namespace TucxbotForm
             m_TwitchClient.OnTwitchLoginFailed -= TwitchClient_OnLoginFailed;
             m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
         }
-        private void TwitchClient_OnSubscriberEvent(object sender, OnSubscriberEventArgs e)
+        private void TwitchClientOnSubscriptionReceived(object sender, OnSubscriptionEventArgs e)
         {
             if (m_OnSubscriberMods != null)
             {
@@ -260,30 +260,30 @@ namespace TucxbotForm
                 }
             }
         }
-        private void TwitchClient_OnBotJoinedChannelEvent(object sender, OnBotJoinedChannelEventArgs e)
+        private void TwitchClientOnBotJoinedChannel(object sender, OnBotJoinedChannelEventArgs e)
         {
-            if (!m_ChannelLeaveCB.Items.Contains(e.Channel))
+            if (!m_ChannelLeaveCB.Items.Contains(e.ChannelName))
             {
                 if (m_ChannelLeaveCB.InvokeRequired)
                 {
-                    m_ChannelLeaveCB.Invoke(new Action(delegate { TwitchClient_OnBotJoinedChannelEvent(sender, e); }));
+                    m_ChannelLeaveCB.Invoke(new Action(delegate { TwitchClientOnBotJoinedChannel(sender, e); }));
                     return;
                 }
-                m_ChannelLeaveCB.Items.Add(e.Channel);
+                m_ChannelLeaveCB.Items.Add(e.ChannelName);
                 m_ChannelLeaveCB.SelectedIndex = 0;
                 m_ChannelJoinTB.Clear();
                 m_ChannelLeaveCB.Visible = true;
                 m_LeaveChannelButton.Visible = true;
 
                 m_ChannelGroup.Visible = true;
-                m_ChannelMessageSelectCB.Items.Add(e.Channel);
+                m_ChannelMessageSelectCB.Items.Add(e.ChannelName);
                 m_ChannelMessageSelectCB.SelectedIndex = 0;
 
                 if (!m_EventGroup.Visible)
                 {
                     if (m_EventGroup.InvokeRequired)
                     {
-                        m_EventGroup.Invoke(new Action(delegate { TwitchClient_OnBotJoinedChannelEvent(sender, e); }));
+                        m_EventGroup.Invoke(new Action(delegate { TwitchClientOnBotJoinedChannel(sender, e); }));
                         return;
                     }
                     m_EventGroup.Visible = true;

@@ -1,34 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Twitch_Websocket
+﻿namespace Twitch.Containers
 {
-    //Sample Whisper
-    //@badges=premium/1;color=#FFFFFF;display-name=Sirtucx;emotes=438858:22-28;message-id=310;thread-id=53321443_103840464;turbo=1;user-id=53321443;user-type= :sirtucx!sirtucx@sirtucx.tmi.twitch.tv WHISPER tucxbot :How about now Tucxbot sirtucW
-    public class WhisperMessage
+    using System;
+    using IRC;
+    
+    public class ChatMessage
     {
         public string Raw { get; protected set; }
+        public string Channel { get; protected set; }
+
         public BadgeCollection Badges { get; protected set; }
+        public int Bits { get; protected set; }
         public string ColorHex { get; protected set; }
         public string DisplayName { get; protected set; }
         public EmoteCollection Emotes { get; protected set; }
-        public int ID { get; protected set; }
+        public string ID { get; protected set; }
+        public string Message { get; protected set; }
+        public bool Mod { get; protected set; }
+        public int ChannelID { get; protected set; }
+        public bool Subscriber { get; protected set; }
         public bool Turbo { get; protected set; }
+        public string Username { get; protected set; }
         public int UserID { get; protected set; }
         public enum UserType { Moderator, GlobalModerator, Admin, Staff, Viewer }
         public UserType UsersType { get; protected set; }
 
-        public string Username { get; protected set; }
-        public string Message { get; protected set; }
-
-        public WhisperMessage(string sIRCRaw)
+        public ChatMessage(string sIRCRaw)
         {
             // Raw IRC string
             Raw = sIRCRaw;
-
+            // Channel notice was sent in
+            Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1, sIRCRaw.IndexOf(' ', sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1) - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1));
+            // Bits (Total)
+            int iNumBits = 0;
+            Int32.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "bits"), out iNumBits);
+            Bits = iNumBits;
             // Badges
             Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
             // Color
@@ -37,8 +42,18 @@ namespace Twitch_Websocket
             DisplayName = IRCParser.GetTwitchTagsValue(sIRCRaw, "display-name").Replace(" ", "");
             // Emotes Used
             Emotes = new EmoteCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "emotes"));
-            // Message ID
-            ID = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "id"));
+            // Message
+            string[] sMessageSplit = sIRCRaw.Split(new string[] { $"#{Channel} :" }, System.StringSplitOptions.None);
+            Message = sMessageSplit[1];
+            // Mod Status
+            Mod = IRCParser.GetTwitchTagsValue(sIRCRaw, "mod") == "1";
+            // Channel ID (Room ID)
+            ChannelID = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "room-id"));
+            // Subscriber Status
+            Subscriber = IRCParser.GetTwitchTagsValue(sIRCRaw, "subscriber") == "1";
+            // Username
+            string[] sTagSplit = sIRCRaw.Split(' ');
+            Username = sTagSplit[1].Substring(sTagSplit[1].IndexOf('!') + 1, (sTagSplit[1].IndexOf('@')) - (sTagSplit[1].IndexOf('!') + 1));
             // Twitch Turbo/Prime Status
             Turbo = IRCParser.GetTwitchTagsValue(sIRCRaw, "turbo") == "1";
             // User ID
@@ -73,12 +88,6 @@ namespace Twitch_Websocket
                         break;
                     }
             }
-
-            string[] sUserTagSplit = sIRCRaw.Split('!');
-            string[] sTmiSplit = sUserTagSplit[1].Split('@');
-            Username = sTmiSplit[0];
-
-            Message = sIRCRaw.Replace($"{sUserTagSplit[0]}!{Username}@{Username}.tmi.twitch.tv WHISPER {TwitchClient.GetInstance().Credentials.TwitchUsername.ToLower()} :", "");
         }
     }
 }

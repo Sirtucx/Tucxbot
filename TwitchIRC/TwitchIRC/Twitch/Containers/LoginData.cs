@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Twitch_Websocket
+namespace Twitch.Containers
 {
     public class LoginData
     {

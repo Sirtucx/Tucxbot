@@ -1,5 +1,7 @@
-﻿namespace Twitch_Websocket
+﻿namespace Twitch.Containers
 {
+    using IRC;
+    
     public class IRCCredentials
     {
         public string TwitchUsername;

@@ -1,5 +1,7 @@
-﻿namespace Twitch_Websocket
+﻿namespace Twitch.Containers
 {
+    using IRC;
+    
     public class UserNotice
     {
         public string Raw { get; protected set; }

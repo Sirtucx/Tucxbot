@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Twitch_Websocket
+﻿namespace Twitch.Containers
 {
+    using IRC;
+    
     public class UserState
     {
         public string Raw { get; protected set; }

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Twitch_Websocket
+﻿namespace Twitch.Events
 {
+    using System;
+    using Containers;
+    
     public class OnWhisperMessageReceivedEventArgs : EventArgs
     {
-        public WhisperMessage WhisperMessage { get; protected set; }
+        public WhisperMessage WhisperMessage { get; }
 
         public OnWhisperMessageReceivedEventArgs(WhisperMessage whisperMessage)
         {
