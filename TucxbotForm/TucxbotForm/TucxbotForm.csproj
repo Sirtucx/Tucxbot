@@ -63,6 +63,11 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Mods\IModHandler.cs" />
+    <Compile Include="Mods\Listeners\ChatMessageListener.cs" />
+    <Compile Include="Mods\Listeners\IModListener.cs" />
+    <Compile Include="Mods\Listeners\WhisperMessageListener.cs" />
+    <Compile Include="Mods\ModManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainForm.resx">
@@ -91,6 +96,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

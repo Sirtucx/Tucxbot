@@ -1,54 +1,65 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.Reflection;
-using System.IO;
-using Newtonsoft.Json;
-using Twitch.Containers;
-using Twitch.Core;
-using Twitch.Events;
-using Twitch.Interfaces;
+﻿using TucxbotForm.Listeners;
 
 namespace TucxbotForm
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Windows.Forms;
+    using System.Reflection;
+    using System.IO;
+    using Newtonsoft.Json;
+    using Twitch.Containers;
+    using Twitch.Core;
+    using Twitch.Events;
+    using Twitch.Mods;
+    using Twitch.Interfaces;
+    
     public partial class MainForm : Form
     {
-        private TwitchClient m_TwitchClient;
-        private LoginData m_LoginData;
-        private int m_iPreviousIndex;
-        private List<string> m_sPreviousChatMessages;
-        private Dictionary<string, IChatMessageMod> m_ChannelMessageMods;
-        private Dictionary<string, IWhisperMessageMod> m_WhisperMessageMods;
-        private Dictionary<string, IOnSubscriberMod> m_OnSubscriberMods;
-        private Dictionary<string, IOnUserJoinedMod> m_OnUserJoinedMods;
-        private Dictionary<string, IOnUserLeaveMod> m_OnUserLeaveMods;
-        private enum CONNECTED_STATE
+        private enum ConnectedState
         {
-            NOT_CONNECTED,
-            ATTEMPTING_CONNECTION,
-            CONNECTED
+            NotConnected,
+            AttemptingConnection,
+            Connected
         }
-        private CONNECTED_STATE m_ConnectedState;
+        
+        private TwitchClient m_twitchClient;
+        private LoginData m_loginData;
+        private int m_iPreviousIndex;
+        private List<IModHandler> m_modManagers;
+        private Dictionary<string, IOnSubscriberMod> m_onSubscriberMods;
+        private Dictionary<string, IOnUserJoinedMod> m_onUserJoinedMods;
+        private Dictionary<string, IOnUserLeaveMod> m_onUserLeaveMods;
+        private ConnectedState m_connectedState;
 
+        private readonly List<string> m_previousChatMessages;
 
         public MainForm()
         {
             InitializeComponent();
-            m_sPreviousChatMessages = new List<string>();
-            m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
+            m_previousChatMessages = new List<string>();
+            m_connectedState = ConnectedState.NotConnected;
+            InitializeModManagers();
             AutoLogin();
         }
 
+        private void InitializeModManagers()
+        {
+            m_modManagers = new List<IModHandler>();
+            m_modManagers.Add(new ModManager<ChatMessageMod, ChatMessageListener>(m_twitchClient));
+            m_modManagers.Add(new ModManager<WhisperMessageMod, WhisperMessageListener>(m_twitchClient));
+        }
+        
         private void AutoLogin()
         {
             try
             {
-                m_LoginData = LoadCredentials();
-                m_ConnectButton.Visible = !string.IsNullOrEmpty(m_LoginData.Username) && !string.IsNullOrEmpty(m_LoginData.OAuth);
+                m_loginData = LoadCredentials();
+                m_connectButton.Visible = !string.IsNullOrEmpty(m_loginData.Username) && !string.IsNullOrEmpty(m_loginData.OAuth);
             }
             catch (Exception e)
             {
-                m_LoginData = SaveLoginData();
+                m_loginData = SaveLoginData();
             }
         }
         private LoginData LoadCredentials()
@@ -71,43 +82,43 @@ namespace TucxbotForm
         private LoginData SaveLoginData(string sUsername = "", string sOAuth = "")
         {
             LoginData loginData = new LoginData(sUsername, sOAuth);
-            string sJSONContent = JsonConvert.SerializeObject(loginData, Formatting.Indented);
+            string jsonContent = JsonConvert.SerializeObject(loginData, Formatting.Indented);
 
             using (StreamWriter writer = new StreamWriter($"{Environment.CurrentDirectory}/Data/Settings.json", false))
             {
-                writer.Write(sJSONContent);
+                writer.Write(jsonContent);
                 writer.Flush();
                 writer.Close();
             }
             return loginData;
         }
-        private void ConnectWeb()
+        private void ConnectClient()
         {
-            m_TwitchClient?.Connect();
+            m_twitchClient?.Connect();
         }
-        private void DisconnectWeb()
+        private void DisconnectClient()
         {
-            m_LeaveChannelButton.Visible = false;
-            m_ChannelLeaveCB.Items.Clear();
-            m_ChannelLeaveCB.ResetText();
-            m_ChannelLeaveCB.Visible = false;
+            m_leaveChannelButton.Visible = false;
+            m_channelLeaveCB.Items.Clear();
+            m_channelLeaveCB.ResetText();
+            m_channelLeaveCB.Visible = false;
 
-            m_ChannelMessageSelectCB.Items.Clear();
-            m_ChannelMessageSelectCB.ResetText();
-            m_ChannelGroup.Visible = false;
+            m_channelMessageSelectCB.Items.Clear();
+            m_channelMessageSelectCB.ResetText();
+            m_channelGroup.Visible = false;
 
-            m_WhisperGroup.Visible = false;
+            m_whisperGroup.Visible = false;
 
-            m_EventGroup.Visible = false;
+            m_eventGroup.Visible = false;
 
-            m_ConnectButton.Enabled = true;
-            m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
+            m_connectButton.Enabled = true;
+            m_connectedState = ConnectedState.NotConnected;
             UnRegisterWebEvents();
-            m_TwitchClient?.Disconnect();
+            m_twitchClient?.Disconnect();
         }
-        private void CloseWeb()
+        private void CloseClient()
         {
-            DisconnectWeb();
+            DisconnectClient();
         }
 
         #region Mods
@@ -119,112 +130,50 @@ namespace TucxbotForm
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                string sFilePath = openFileDialog.FileName;
-                int iStartIndex = sFilePath.LastIndexOf('\\') + 1;
-                int iEndIndex = sFilePath.LastIndexOf('.');
-                string sFileName = sFilePath.Substring(iStartIndex, iEndIndex - iStartIndex);
-                Assembly assembly = Assembly.LoadFile(sFilePath);
+                string filePath = openFileDialog.FileName;
+                int startIndex = filePath.LastIndexOf('\\') + 1;
+                int endIndex = filePath.LastIndexOf('.');
+                string fileName = filePath.Substring(startIndex, endIndex - startIndex);
+                Assembly assembly = Assembly.LoadFile(filePath);
                 foreach (Type type in assembly.GetTypes())
                 {
-                    if (typeof(IChatMessageMod).IsAssignableFrom(type))
+                    foreach (IModHandler modManager in m_modManagers)
                     {
-                        if (m_ChannelMessageMods == null)
-                        {
-                            m_ChannelMessageMods = new Dictionary<string, IChatMessageMod>();
-                        }
-                        m_ChannelMessageMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IChatMessageMod);
-                        Console.WriteLine("Loading Channel Message Mod: {0} to the project!", sFileName);
-                    }
-                    else if (typeof(IWhisperMessageMod).IsAssignableFrom(type))
-                    {
-                        if (m_WhisperMessageMods == null)
-                        {
-                            m_WhisperMessageMods = new Dictionary<string, IWhisperMessageMod>();
-                        }
-                        m_WhisperMessageMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IWhisperMessageMod);
-                        Console.WriteLine("Loading Whisper Message Mod: {0} to the project!", sFileName);
-                    }
-                    else if (typeof(IOnSubscriberMod).IsAssignableFrom(type))
-                    {
-                        if (m_OnSubscriberMods == null)
-                        {
-                            m_OnSubscriberMods = new Dictionary<string, IOnSubscriberMod>();
-                        }
-                        m_OnSubscriberMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnSubscriberMod);
-                        Console.WriteLine("Loading OnSubscriber Mod: {0} to the project!", sFileName);
-                    }
-                    else if (typeof(IOnUserJoinedMod).IsAssignableFrom(type))
-                    {
-                        if (m_OnUserJoinedMods == null)
-                        {
-                            m_OnUserJoinedMods = new Dictionary<string, IOnUserJoinedMod>();
-                        }
-                        m_OnUserJoinedMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnUserJoinedMod);
-                        Console.WriteLine("Loading OnUserJoined Mod: {0} to the project!", sFileName);
-                    }
-                    else if (typeof(IOnUserLeaveMod).IsAssignableFrom(type))
-                    {
-                        if (m_OnUserLeaveMods == null)
-                        {
-                            m_OnUserLeaveMods = new Dictionary<string, IOnUserLeaveMod>();
-                        }
-                        m_OnUserLeaveMods.Add(sFileName, type.GetConstructor(new Type[] { }).Invoke(null) as IOnUserLeaveMod);
-                        Console.WriteLine("Loading OnUserLeave Mod: {0} to the project!", sFileName);
+                        modManager.LoadMod(fileName, type);
                     }
                 }
 
-                m_UnloadModCB.Items.Add(sFileName);
+                m_UnloadModCB.Items.Add(fileName);
                 m_UnloadModCB.SelectedIndex = 0;
             }
         }
         private void ShutdownMods()
         {
-            if (m_ChannelMessageMods != null)
+            foreach (IModHandler modManager in m_modManagers)
             {
-                foreach (KeyValuePair<string, IChatMessageMod> kvp in m_ChannelMessageMods)
-                {
-                    kvp.Value.Shutdown();
-                }
-            }
-            if (m_WhisperMessageMods != null)
-            {
-                foreach (KeyValuePair<string, IWhisperMessageMod> kvp in m_WhisperMessageMods)
-                {
-                    kvp.Value.Shutdown();
-                }
-            }
-            if (m_OnSubscriberMods != null)
-            {
-                foreach (KeyValuePair<string, IOnSubscriberMod> kvp in m_OnSubscriberMods)
-                {
-                    kvp.Value.Shutdown();
-                }
+                modManager.Shutdown();
             }
         }
         private void RegisterWebEvents()
         {
-            TestDelegate test = TwitchClient_OnChatMessageReceived;
-            m_TwitchClient.OnWhisperMessageReceived += TwitchClient_OnWhisperMessageReceived;
-            m_TwitchClient.OnChatMessageReceived += TwitchClient_OnChatMessageReceived;
-            m_TwitchClient.OnBotJoinedChannel += TwitchClientOnBotJoinedChannel;
-            m_TwitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
-            m_TwitchClient.OnSubscriptionReceived += TwitchClientOnSubscriptionReceived;
-            m_TwitchClient.OnUserJoinedEvent += TwitchClient_OnUserJoinedEvent;
+            m_twitchClient.OnWhisperMessageReceived += TwitchClient_OnWhisperMessageReceived;
+            m_twitchClient.OnChatMessageReceived += TwitchClient_OnChatMessageReceived;
+            m_twitchClient.OnBotJoinedChannel += TwitchClientOnBotJoinedChannel;
+            m_twitchClient.OnUserLeaveEvent += TwitchClient_OnUserLeaveEvent;
+            m_twitchClient.OnSubscriptionReceived += TwitchClientOnSubscriptionReceived;
+            m_twitchClient.OnUserJoinedEvent += TwitchClient_OnUserJoinedEvent;
         }
 
-        public delegate void TestDelegate(object sender, OnChatMessageReceivedEventArgs arg);
-
-        
         private void UnRegisterWebEvents()
         {
-            if (m_TwitchClient != null)
+            if (m_twitchClient != null)
             {
-                m_TwitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
-                m_TwitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
-                m_TwitchClient.OnBotJoinedChannel -= TwitchClientOnBotJoinedChannel;
-                m_TwitchClient.OnSubscriptionReceived -= TwitchClientOnSubscriptionReceived;
-                m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
-                m_TwitchClient.OnUserJoinedEvent -= TwitchClient_OnUserJoinedEvent;
+                m_twitchClient.OnWhisperMessageReceived -= TwitchClient_OnWhisperMessageReceived;
+                m_twitchClient.OnChatMessageReceived -= TwitchClient_OnChatMessageReceived;
+                m_twitchClient.OnBotJoinedChannel -= TwitchClientOnBotJoinedChannel;
+                m_twitchClient.OnSubscriptionReceived -= TwitchClientOnSubscriptionReceived;
+                m_twitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
+                m_twitchClient.OnUserJoinedEvent -= TwitchClient_OnUserJoinedEvent;
             }
         }
         #endregion Mods
@@ -232,29 +181,29 @@ namespace TucxbotForm
         #region Twitch Client Events
         private void TwitchClient_OnTwitchClientConnected()
         {
-            if (m_ConnectButton.InvokeRequired)
+            if (m_connectButton.InvokeRequired)
             {
-                m_ConnectButton.Invoke(new Action(delegate { TwitchClient_OnTwitchClientConnected(); }));
+                m_connectButton.Invoke(new Action(delegate { TwitchClient_OnTwitchClientConnected(); }));
                 return;
             }
-            m_ConnectedState = CONNECTED_STATE.CONNECTED;
-            m_ConnectButton.Visible = false;
+            m_connectedState = ConnectedState.Connected;
+            m_connectButton.Visible = false;
             m_DisconnectButton.Visible = true;
-            m_WhisperGroup.Visible = true;
-            m_ChannelGroup.Visible = true;
+            m_whisperGroup.Visible = true;
+            m_channelGroup.Visible = true;
             RegisterWebEvents();
         }
         private void TwitchClient_OnLoginFailed()
         {
-            m_ConnectedState = CONNECTED_STATE.NOT_CONNECTED;
-            m_TwitchClient.OnTwitchLoginFailed -= TwitchClient_OnLoginFailed;
-            m_TwitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
+            m_connectedState = ConnectedState.NotConnected;
+            m_twitchClient.OnTwitchLoginFailed -= TwitchClient_OnLoginFailed;
+            m_twitchClient.OnTwitchConnected -= TwitchClient_OnTwitchClientConnected;
         }
         private void TwitchClientOnSubscriptionReceived(object sender, OnSubscriptionEventArgs e)
         {
-            if (m_OnSubscriberMods != null)
+            if (m_onSubscriberMods != null)
             {
-                foreach (KeyValuePair<string, IOnSubscriberMod> mod in m_OnSubscriberMods)
+                foreach (KeyValuePair<string, IOnSubscriberMod> mod in m_onSubscriberMods)
                 {
                     mod.Value.Process(e.UserNotice);
                 }
@@ -262,54 +211,54 @@ namespace TucxbotForm
         }
         private void TwitchClientOnBotJoinedChannel(object sender, OnBotJoinedChannelEventArgs e)
         {
-            if (!m_ChannelLeaveCB.Items.Contains(e.ChannelName))
+            if (!m_channelLeaveCB.Items.Contains(e.ChannelName))
             {
-                if (m_ChannelLeaveCB.InvokeRequired)
+                if (m_channelLeaveCB.InvokeRequired)
                 {
-                    m_ChannelLeaveCB.Invoke(new Action(delegate { TwitchClientOnBotJoinedChannel(sender, e); }));
+                    m_channelLeaveCB.Invoke(new Action(delegate { TwitchClientOnBotJoinedChannel(sender, e); }));
                     return;
                 }
-                m_ChannelLeaveCB.Items.Add(e.ChannelName);
-                m_ChannelLeaveCB.SelectedIndex = 0;
+                m_channelLeaveCB.Items.Add(e.ChannelName);
+                m_channelLeaveCB.SelectedIndex = 0;
                 m_ChannelJoinTB.Clear();
-                m_ChannelLeaveCB.Visible = true;
-                m_LeaveChannelButton.Visible = true;
+                m_channelLeaveCB.Visible = true;
+                m_leaveChannelButton.Visible = true;
 
-                m_ChannelGroup.Visible = true;
-                m_ChannelMessageSelectCB.Items.Add(e.ChannelName);
-                m_ChannelMessageSelectCB.SelectedIndex = 0;
+                m_channelGroup.Visible = true;
+                m_channelMessageSelectCB.Items.Add(e.ChannelName);
+                m_channelMessageSelectCB.SelectedIndex = 0;
 
-                if (!m_EventGroup.Visible)
+                if (!m_eventGroup.Visible)
                 {
-                    if (m_EventGroup.InvokeRequired)
+                    if (m_eventGroup.InvokeRequired)
                     {
-                        m_EventGroup.Invoke(new Action(delegate { TwitchClientOnBotJoinedChannel(sender, e); }));
+                        m_eventGroup.Invoke(new Action(delegate { TwitchClientOnBotJoinedChannel(sender, e); }));
                         return;
                     }
-                    m_EventGroup.Visible = true;
+                    m_eventGroup.Visible = true;
                 }
             }
         }
         private void TwitchClient_OnUserLeaveEvent(object sender, OnUserLeaveEventArgs e)
         {
-            if (m_ChannelLeaveCB.InvokeRequired)
+            if (m_channelLeaveCB.InvokeRequired)
             {
-                m_ChannelLeaveCB.Invoke(new Action(delegate { TwitchClient_OnUserLeaveEvent(sender, e); }));
+                m_channelLeaveCB.Invoke(new Action(delegate { TwitchClient_OnUserLeaveEvent(sender, e); }));
                 return;
             }
 
-            if (e.Username == m_TwitchClient.Credentials.TwitchUsername)
+            if (e.Username == m_twitchClient.Credentials.TwitchUsername)
             {
-                m_ChannelLeaveCB.Items.Remove(e.Channel);
+                m_channelLeaveCB.Items.Remove(e.Channel);
 
-                m_ChannelLeaveCB.Visible = m_ChannelLeaveCB.Items.Count > 0;
-                if (m_ChannelLeaveCB.Visible)
+                m_channelLeaveCB.Visible = m_channelLeaveCB.Items.Count > 0;
+                if (m_channelLeaveCB.Visible)
                 {
-                    m_ChannelLeaveCB.SelectedIndex = 0;
+                    m_channelLeaveCB.SelectedIndex = 0;
                 }
-                m_LeaveChannelButton.Visible = m_ChannelLeaveCB.Items.Count > 0;
+                m_leaveChannelButton.Visible = m_channelLeaveCB.Items.Count > 0;
 
-                m_ChannelMessageSelectCB.Items.Remove(e.Channel);
+                m_channelMessageSelectCB.Items.Remove(e.Channel);
             }
         }
         private void TwitchClient_OnChatMessageReceived(object sender, OnChatMessageReceivedEventArgs e)
@@ -320,14 +269,7 @@ namespace TucxbotForm
                 return;
             }
             m_ChannelOutputTB.Text += $"#{e.ChatMessage.Channel}| {e.ChatMessage.Username}: {e.ChatMessage.Message}\n";
-
-            if (m_ChannelMessageMods != null)
-            {
-                foreach(KeyValuePair < string, IChatMessageMod> mod in m_ChannelMessageMods)
-                {
-                    mod.Value.Process(e.ChatMessage);
-                }
-            }
+            
             Console.WriteLine($"#{e.ChatMessage.Channel}\n{e.ChatMessage.Username}: {e.ChatMessage.Message}");
         }
         private void TwitchClient_OnWhisperMessageReceived(object sender, OnWhisperMessageReceivedEventArgs e)
@@ -338,21 +280,14 @@ namespace TucxbotForm
                 return;
             }
             m_WhisperOutputTB.Text += $"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}\n";
-
-            if (m_WhisperMessageMods != null)
-            {
-                foreach (KeyValuePair<string, IWhisperMessageMod> mod in m_WhisperMessageMods)
-                {
-                    mod.Value.Process(e.WhisperMessage);
-                }
-            }
+            
             Console.WriteLine($"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}");
         }
         private void TwitchClient_OnUserJoinedEvent(object sender, OnUserJoinedEventArgs e)
         {
-            if (m_OnUserJoinedMods != null)
+            if (m_onUserJoinedMods != null)
             {
-                foreach(KeyValuePair<string, IOnUserJoinedMod> mod in m_OnUserJoinedMods)
+                foreach(KeyValuePair<string, IOnUserJoinedMod> mod in m_onUserJoinedMods)
                 {
                     mod.Value.Process(e.UserState);
                 }
@@ -366,7 +301,7 @@ namespace TucxbotForm
             string sUsername = Microsoft.VisualBasic.Interaction.InputBox($"Please enter your bot\'s username:", "Login Information", XPos: Screen.PrimaryScreen.WorkingArea.Width / 2, YPos: Screen.PrimaryScreen.WorkingArea.Height / 2).ToLower();
             string sOAuth = Microsoft.VisualBasic.Interaction.InputBox($"Please enter your bot\'s OAuth Key, this can be found here: https://twitchapps.com/tmi/", "Login Information", XPos: Screen.PrimaryScreen.WorkingArea.Width / 2, YPos: Screen.PrimaryScreen.WorkingArea.Height / 2);
 
-            m_LoginData = SaveLoginData(sUsername, sOAuth);
+            m_loginData = SaveLoginData(sUsername, sOAuth);
 
             if (!string.IsNullOrEmpty(sUsername) && !string.IsNullOrEmpty(sOAuth))
             {
@@ -375,26 +310,26 @@ namespace TucxbotForm
         }
         private void ConnectButton_Click(object sender, EventArgs e)
         {
-            m_TwitchClient = TwitchClient.GetInstance(new IRCCredentials(m_LoginData.Username, m_LoginData.OAuth));
+            m_twitchClient = TwitchClient.GetInstance(new IRCCredentials(m_loginData.Username, m_loginData.OAuth));
 
-            if (m_TwitchClient != null)
+            if (m_twitchClient != null)
             {
-                if (m_ConnectedState == CONNECTED_STATE.NOT_CONNECTED)
+                if (m_connectedState == ConnectedState.NotConnected)
                 {
-                    m_ConnectedState = CONNECTED_STATE.ATTEMPTING_CONNECTION;
-                    m_TwitchClient.OnTwitchLoginFailed += TwitchClient_OnLoginFailed;
-                    m_TwitchClient.OnTwitchConnected += TwitchClient_OnTwitchClientConnected;
+                    m_connectedState = ConnectedState.AttemptingConnection;
+                    m_twitchClient.OnTwitchLoginFailed += TwitchClient_OnLoginFailed;
+                    m_twitchClient.OnTwitchConnected += TwitchClient_OnTwitchClientConnected;
                 }
             }
 
-            m_TwitchClient?.Connect();
+            m_twitchClient?.Connect();
 
         }
         private void DisconnectButton_Click(object sender, EventArgs e)
         {
-            CloseWeb();
+            CloseClient();
             m_DisconnectButton.Visible = false;
-            m_ConnectButton.Visible = true;
+            m_connectButton.Visible = true;
         }
         #endregion Connect Group
 
@@ -407,8 +342,8 @@ namespace TucxbotForm
                 string sMessage = m_WhisperInputTB.Text.Trim().Replace("\n", "");
                 m_WhisperInputTB.Clear();
 
-                m_TwitchClient.SendWhisperMessage(sTarget, sMessage);
-                m_WhisperOutputTB.AppendText($"{m_TwitchClient.Credentials.TwitchUsername} : {sMessage}\n");
+                m_twitchClient.SendWhisperMessage(sTarget, sMessage);
+                m_WhisperOutputTB.AppendText($"{m_twitchClient.Credentials.TwitchUsername} : {sMessage}\n");
             }
         }
         #endregion Whisper Group
@@ -416,7 +351,7 @@ namespace TucxbotForm
         #region Public Twitch Chat Group
         private void JoinChannelButton_Click(object sender, EventArgs e)
         {
-            m_TwitchClient?.JoinChannel(m_ChannelJoinTB.Text);
+            m_twitchClient?.JoinChannel(m_ChannelJoinTB.Text);
         }
         private void JoinChannelTB_Leave(object sender, EventArgs e)
         {
@@ -431,9 +366,9 @@ namespace TucxbotForm
         }
         private void LeaveChannelButton_Click(object sender, EventArgs e)
         {
-            if (m_ChannelLeaveCB.Items.Count > 0)
+            if (m_channelLeaveCB.Items.Count > 0)
             {
-                m_TwitchClient.LeaveChannel(m_ChannelLeaveCB.Items[m_ChannelLeaveCB.SelectedIndex].ToString());
+                m_twitchClient.LeaveChannel(m_channelLeaveCB.Items[m_channelLeaveCB.SelectedIndex].ToString());
             }
         }
         private void ChannelMessageInput_KeyPress(object sender, KeyPressEventArgs e)
@@ -441,13 +376,13 @@ namespace TucxbotForm
             if (e.KeyChar == (char)Keys.Return && !string.IsNullOrEmpty(m_ChannelInputTB.Text))
             {
                 string sMessage = m_ChannelInputTB.Text.Trim().Replace("\n", "");
-                m_sPreviousChatMessages.Add(sMessage);
+                m_previousChatMessages.Add(sMessage);
                 m_ChannelInputTB.Clear();
 
-                string sTarget = m_ChannelMessageSelectCB.SelectedItem.ToString();
+                string sTarget = m_channelMessageSelectCB.SelectedItem.ToString();
 
-                m_TwitchClient.SendChatMessage(sTarget, sMessage);
-                m_ChannelOutputTB.AppendText($"#{sTarget}|({m_TwitchClient.Credentials.TwitchUsername}): {sMessage}\n");
+                m_twitchClient.SendChatMessage(sTarget, sMessage);
+                m_ChannelOutputTB.AppendText($"#{sTarget}|({m_twitchClient.Credentials.TwitchUsername}): {sMessage}\n");
 
 
                 m_iPreviousIndex = 0;
@@ -455,13 +390,13 @@ namespace TucxbotForm
         }
         private void ChannelMessageInput_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Up && m_sPreviousChatMessages.Count > 0)
+            if (e.KeyCode == Keys.Up && m_previousChatMessages.Count > 0)
             {
-                if (m_iPreviousIndex == m_sPreviousChatMessages.Count)
+                if (m_iPreviousIndex == m_previousChatMessages.Count)
                 {
                     m_iPreviousIndex -= 1;
                 }
-                m_ChannelInputTB.Text = m_sPreviousChatMessages[m_sPreviousChatMessages.Count - 1 - m_iPreviousIndex];
+                m_ChannelInputTB.Text = m_previousChatMessages[m_previousChatMessages.Count - 1 - m_iPreviousIndex];
                 ++m_iPreviousIndex;
             }
         }
@@ -477,44 +412,29 @@ namespace TucxbotForm
             if (m_UnloadModCB.Items.Count > 0)
             {
                 string sModName = m_UnloadModCB.Items[m_UnloadModCB.SelectedIndex].ToString();
-                if (m_ChannelMessageMods != null)
+
+                if (m_onSubscriberMods != null)
                 {
-                    if (m_ChannelMessageMods.ContainsKey(sModName))
+                    if (m_onSubscriberMods.ContainsKey(sModName))
                     {
-                        m_ChannelMessageMods[sModName].Shutdown();
-                        m_ChannelMessageMods.Remove(sModName);
+                        m_onSubscriberMods[sModName].Shutdown();
+                        m_onSubscriberMods.Remove(sModName);
                     }
                 }
-                if (m_WhisperMessageMods != null)
+                if (m_onUserJoinedMods != null)
                 {
-                    if (m_WhisperMessageMods.ContainsKey(sModName))
+                    if (m_onUserJoinedMods.ContainsKey(sModName))
                     {
-                        m_WhisperMessageMods[sModName].Shutdown();
-                        m_WhisperMessageMods.Remove(sModName);
+                        m_onUserJoinedMods[sModName].Shutdown();
+                        m_onUserJoinedMods.Remove(sModName);
                     }
                 }
-                if (m_OnSubscriberMods != null)
+                if (m_onUserLeaveMods != null)
                 {
-                    if (m_OnSubscriberMods.ContainsKey(sModName))
+                    if (m_onUserLeaveMods.ContainsKey(sModName))
                     {
-                        m_OnSubscriberMods[sModName].Shutdown();
-                        m_OnSubscriberMods.Remove(sModName);
-                    }
-                }
-                if (m_OnUserJoinedMods != null)
-                {
-                    if (m_OnUserJoinedMods.ContainsKey(sModName))
-                    {
-                        m_OnUserJoinedMods[sModName].Shutdown();
-                        m_OnUserJoinedMods.Remove(sModName);
-                    }
-                }
-                if (m_OnUserLeaveMods != null)
-                {
-                    if (m_OnUserLeaveMods.ContainsKey(sModName))
-                    {
-                        m_OnUserLeaveMods[sModName].Shutdown();
-                        m_OnUserLeaveMods.Remove(sModName);
+                        m_onUserLeaveMods[sModName].Shutdown();
+                        m_onUserLeaveMods.Remove(sModName);
                     }
                 }
 
@@ -527,7 +447,7 @@ namespace TucxbotForm
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             ShutdownMods();
-            CloseWeb();
+            CloseClient();
         }
 
         

@@ -55,6 +55,7 @@
     <Compile Include="Twitch\Containers\IRCCredentials.cs" />
     <Compile Include="Twitch\Containers\LoginData.cs" />
     <Compile Include="Twitch\Containers\UserState.cs" />
+    <Compile Include="Twitch\Core\ITwitchClient.cs" />
     <Compile Include="Twitch\Core\TwitchClient.cs" />
     <Compile Include="Twitch\Events\OnBotJoinedChannelEventArgs.cs" />
     <Compile Include="Twitch\Events\OnUserJoinedEventArgs.cs" />
@@ -66,12 +67,14 @@
     <Compile Include="Twitch\Events\OnSubscriptionEventArgs.cs" />
     <Compile Include="Twitch\Events\OnWhisperMessageReceivedEventArgs.cs" />
     <Compile Include="Twitch\Containers\UserNotice.cs" />
-    <Compile Include="Twitch\Mod Interfaces\IChatMessageMod.cs" />
-    <Compile Include="Twitch\Mod Interfaces\IOnSubscriberMod.cs" />
-    <Compile Include="Twitch\Mod Interfaces\IOnUserJoinedMod.cs" />
-    <Compile Include="Twitch\Mod Interfaces\IOnUserLeaveMod.cs" />
-    <Compile Include="Twitch\Mod Interfaces\IWhisperMessageMod.cs" />
+    <Compile Include="Twitch\Mods\ChatMessageMod.cs" />
+    <Compile Include="Twitch\Mods\IMod.cs" />
+    <Compile Include="Twitch\Mods\IOnSubscriberMod.cs" />
+    <Compile Include="Twitch\Mods\IOnUserJoinedMod.cs" />
+    <Compile Include="Twitch\Mods\IOnUserLeaveMod.cs" />
+    <Compile Include="Twitch\Mods\IWhisperMessageMod.cs" />
     <Compile Include="Twitch\Containers\WhisperMessage.cs" />
+    <Compile Include="Twitch\Mods\WhisperMessageMod.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\Settings.json" />

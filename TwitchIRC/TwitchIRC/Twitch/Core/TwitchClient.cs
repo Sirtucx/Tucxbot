@@ -8,9 +8,10 @@
     using Events;
     using Containers;
 
-    public class TwitchClient
+    public class TwitchClient : ITwitchClient
     {
         public Action OnTwitchConnected, OnTwitchLoginFailed;
+
         public event EventHandler<OnSubscriptionEventArgs> OnSubscriptionReceived;
         public event EventHandler<OnChatMessageReceivedEventArgs> OnChatMessageReceived;
         public event EventHandler<OnWhisperMessageReceivedEventArgs> OnWhisperMessageReceived;
