@@ -37,16 +37,16 @@
             this.label1 = new System.Windows.Forms.Label();
             this.btnAddUser = new System.Windows.Forms.Button();
             this.btnLoadMusic = new System.Windows.Forms.Button();
-            this.tBoxUser = new System.Windows.Forms.TextBox();
-            this.tBoxPath = new System.Windows.Forms.TextBox();
+            this.userTextBox = new System.Windows.Forms.TextBox();
+            this.pathTextBox = new System.Windows.Forms.TextBox();
             this.groupContents = new System.Windows.Forms.GroupBox();
             this.btnDelete = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.tBoxExistingPath = new System.Windows.Forms.TextBox();
-            this.cBoxUsers = new System.Windows.Forms.ComboBox();
-            this.btnSave = new System.Windows.Forms.Button();
-            this.rtBoxLog = new System.Windows.Forms.RichTextBox();
+            this.existingPathTextBox = new System.Windows.Forms.TextBox();
+            this.userComboBox = new System.Windows.Forms.ComboBox();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.logRichTextBox = new System.Windows.Forms.RichTextBox();
             this.groupGenerate.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupAddUser.SuspendLayout();
@@ -71,7 +71,7 @@
             this.btnGenerate.TabIndex = 0;
             this.btnGenerate.Text = "Save to";
             this.btnGenerate.UseVisualStyleBackColor = true;
-            this.btnGenerate.Click += new System.EventHandler(this.btnGenerate_Click);
+            this.btnGenerate.Click += new System.EventHandler(this.GenerateButton_Click);
             // 
             // groupBox2
             // 
@@ -91,7 +91,7 @@
             this.btnOpen.TabIndex = 0;
             this.btnOpen.Text = "Open";
             this.btnOpen.UseVisualStyleBackColor = true;
-            this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
+            this.btnOpen.Click += new System.EventHandler(this.OpenButton_Click);
             // 
             // groupAddUser
             // 
@@ -99,8 +99,8 @@
             this.groupAddUser.Controls.Add(this.label1);
             this.groupAddUser.Controls.Add(this.btnAddUser);
             this.groupAddUser.Controls.Add(this.btnLoadMusic);
-            this.groupAddUser.Controls.Add(this.tBoxUser);
-            this.groupAddUser.Controls.Add(this.tBoxPath);
+            this.groupAddUser.Controls.Add(this.userTextBox);
+            this.groupAddUser.Controls.Add(this.pathTextBox);
             this.groupAddUser.Location = new System.Drawing.Point(157, 18);
             this.groupAddUser.Name = "groupAddUser";
             this.groupAddUser.Size = new System.Drawing.Size(296, 129);
@@ -135,7 +135,7 @@
             this.btnAddUser.TabIndex = 3;
             this.btnAddUser.Text = "Add/Edit User";
             this.btnAddUser.UseVisualStyleBackColor = true;
-            this.btnAddUser.Click += new System.EventHandler(this.btnAddUser_Click);
+            this.btnAddUser.Click += new System.EventHandler(this.AddUserButton_Click);
             // 
             // btnLoadMusic
             // 
@@ -145,30 +145,30 @@
             this.btnLoadMusic.TabIndex = 2;
             this.btnLoadMusic.Text = "Open File";
             this.btnLoadMusic.UseVisualStyleBackColor = true;
-            this.btnLoadMusic.Click += new System.EventHandler(this.btnLoadMusic_Click);
+            this.btnLoadMusic.Click += new System.EventHandler(this.LoadMusicButton_Click);
             // 
-            // tBoxUser
+            // userTextBox
             // 
-            this.tBoxUser.Location = new System.Drawing.Point(138, 91);
-            this.tBoxUser.Name = "tBoxUser";
-            this.tBoxUser.Size = new System.Drawing.Size(152, 20);
-            this.tBoxUser.TabIndex = 1;
+            this.userTextBox.Location = new System.Drawing.Point(138, 91);
+            this.userTextBox.Name = "userTextBox";
+            this.userTextBox.Size = new System.Drawing.Size(152, 20);
+            this.userTextBox.TabIndex = 1;
             // 
-            // tBoxPath
+            // pathTextBox
             // 
-            this.tBoxPath.Location = new System.Drawing.Point(78, 39);
-            this.tBoxPath.Name = "tBoxPath";
-            this.tBoxPath.ReadOnly = true;
-            this.tBoxPath.Size = new System.Drawing.Size(212, 20);
-            this.tBoxPath.TabIndex = 0;
+            this.pathTextBox.Location = new System.Drawing.Point(78, 39);
+            this.pathTextBox.Name = "pathTextBox";
+            this.pathTextBox.ReadOnly = true;
+            this.pathTextBox.Size = new System.Drawing.Size(212, 20);
+            this.pathTextBox.TabIndex = 0;
             // 
             // groupContents
             // 
             this.groupContents.Controls.Add(this.btnDelete);
             this.groupContents.Controls.Add(this.label4);
             this.groupContents.Controls.Add(this.label3);
-            this.groupContents.Controls.Add(this.tBoxExistingPath);
-            this.groupContents.Controls.Add(this.cBoxUsers);
+            this.groupContents.Controls.Add(this.existingPathTextBox);
+            this.groupContents.Controls.Add(this.userComboBox);
             this.groupContents.Location = new System.Drawing.Point(20, 154);
             this.groupContents.Name = "groupContents";
             this.groupContents.Size = new System.Drawing.Size(433, 103);
@@ -185,7 +185,7 @@
             this.btnDelete.TabIndex = 4;
             this.btnDelete.Text = "Remove";
             this.btnDelete.UseVisualStyleBackColor = true;
-            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
+            this.btnDelete.Click += new System.EventHandler(this.DeleteButton_Click);
             // 
             // label4
             // 
@@ -205,50 +205,50 @@
             this.label3.TabIndex = 2;
             this.label3.Text = "Username";
             // 
-            // tBoxExistingPath
+            // existingPathTextBox
             // 
-            this.tBoxExistingPath.Location = new System.Drawing.Point(155, 43);
-            this.tBoxExistingPath.Name = "tBoxExistingPath";
-            this.tBoxExistingPath.ReadOnly = true;
-            this.tBoxExistingPath.Size = new System.Drawing.Size(272, 20);
-            this.tBoxExistingPath.TabIndex = 1;
+            this.existingPathTextBox.Location = new System.Drawing.Point(155, 43);
+            this.existingPathTextBox.Name = "existingPathTextBox";
+            this.existingPathTextBox.ReadOnly = true;
+            this.existingPathTextBox.Size = new System.Drawing.Size(272, 20);
+            this.existingPathTextBox.TabIndex = 1;
             // 
-            // cBoxUsers
+            // userComboBox
             // 
-            this.cBoxUsers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cBoxUsers.FormattingEnabled = true;
-            this.cBoxUsers.Location = new System.Drawing.Point(12, 43);
-            this.cBoxUsers.Name = "cBoxUsers";
-            this.cBoxUsers.Size = new System.Drawing.Size(121, 21);
-            this.cBoxUsers.TabIndex = 0;
-            this.cBoxUsers.SelectedIndexChanged += new System.EventHandler(this.cBoxUsers_SelectedIndexChanged);
+            this.userComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.userComboBox.FormattingEnabled = true;
+            this.userComboBox.Location = new System.Drawing.Point(12, 43);
+            this.userComboBox.Name = "userComboBox";
+            this.userComboBox.Size = new System.Drawing.Size(121, 21);
+            this.userComboBox.TabIndex = 0;
+            this.userComboBox.SelectedIndexChanged += new System.EventHandler(this.UserComboBox_SelectedIndexChanged);
             // 
-            // btnSave
+            // saveButton
             // 
-            this.btnSave.Location = new System.Drawing.Point(20, 263);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(427, 33);
-            this.btnSave.TabIndex = 4;
-            this.btnSave.Text = "Save";
-            this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Visible = false;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            this.saveButton.Location = new System.Drawing.Point(20, 263);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(427, 33);
+            this.saveButton.TabIndex = 4;
+            this.saveButton.Text = "Save";
+            this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Visible = false;
+            this.saveButton.Click += new System.EventHandler(this.SaveButton_Click);
             // 
-            // rtBoxLog
+            // logRichTextBox
             // 
-            this.rtBoxLog.Location = new System.Drawing.Point(20, 316);
-            this.rtBoxLog.Name = "rtBoxLog";
-            this.rtBoxLog.Size = new System.Drawing.Size(427, 96);
-            this.rtBoxLog.TabIndex = 5;
-            this.rtBoxLog.Text = "";
+            this.logRichTextBox.Location = new System.Drawing.Point(20, 316);
+            this.logRichTextBox.Name = "logRichTextBox";
+            this.logRichTextBox.Size = new System.Drawing.Size(427, 96);
+            this.logRichTextBox.TabIndex = 5;
+            this.logRichTextBox.Text = "";
             // 
             // MusicIntroEditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(465, 437);
-            this.Controls.Add(this.rtBoxLog);
-            this.Controls.Add(this.btnSave);
+            this.Controls.Add(this.logRichTextBox);
+            this.Controls.Add(this.saveButton);
             this.Controls.Add(this.groupContents);
             this.Controls.Add(this.groupAddUser);
             this.Controls.Add(this.groupBox2);
@@ -276,15 +276,15 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnAddUser;
         private System.Windows.Forms.Button btnLoadMusic;
-        private System.Windows.Forms.TextBox tBoxUser;
-        private System.Windows.Forms.TextBox tBoxPath;
+        private System.Windows.Forms.TextBox userTextBox;
+        private System.Windows.Forms.TextBox pathTextBox;
         private System.Windows.Forms.GroupBox groupContents;
-        private System.Windows.Forms.TextBox tBoxExistingPath;
-        private System.Windows.Forms.ComboBox cBoxUsers;
+        private System.Windows.Forms.TextBox existingPathTextBox;
+        private System.Windows.Forms.ComboBox userComboBox;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Button btnSave;
-        private System.Windows.Forms.RichTextBox rtBoxLog;
+        private System.Windows.Forms.Button saveButton;
+        private System.Windows.Forms.RichTextBox logRichTextBox;
         private System.Windows.Forms.Button btnDelete;
     }
 }
