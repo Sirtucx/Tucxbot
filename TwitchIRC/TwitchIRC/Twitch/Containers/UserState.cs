@@ -16,7 +16,8 @@
             // RawMessage IRC string
             RawMessage = ircRawMessage;
             // Channel notice was sent in
-            Channel = ircRawMessage.Substring(ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1, ircRawMessage.IndexOf(' ', ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1) - (ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1));
+            int startIndex = ircRawMessage.IndexOf('#') + 1;
+            Channel = ircRawMessage.Substring(startIndex);
             // Badges
             Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(ircRawMessage, "@badges"));
             // Color
