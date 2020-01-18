@@ -1,56 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Twitch_Websocket;
-using Twitch_Websocket.Mod_Interfaces;
-
-namespace SubscriberNotificationMod
+﻿namespace SubscriberNotificationMod
 {
+    using System.Collections.Generic;
+    using Twitch.Containers;
+    
     public class SubscriberNotificationSetting
     {
-        protected const string UsernameVariable = "{username}";
-        protected const string SubStreakVariable = "{substreak}";
-        protected const string GiftRecipient = "{giftusername}";
-        protected const string GiftedSubCount = "{giftcount}";
-        protected const string SubType = "{subtype}";
+        private const string USERNAME_VARIABLE = "{username}";
+        private const string SUB_STREAK_VARIABLE = "{substreak}";
+        private const string GIFT_RECIPIENT = "{giftusername}";
+        private const string GIFTED_SUB_COUNT = "{giftcount}";
+        private const string SUB_TYPE = "{subtype}";
 
-        public Dictionary<string, SubscriberMessage> SubscriberMessages;
+        private readonly Dictionary<string, SubscriberMessage> m_subscriberMessages;
        
         public SubscriberNotificationSetting()
         {
-            SubscriberMessages = new Dictionary<string, SubscriberMessage>();
-            SubscriberMessages.Add("default", new SubscriberMessage());
+            m_subscriberMessages = new Dictionary<string, SubscriberMessage>();
+            m_subscriberMessages.Add("default", new SubscriberMessage());
         }
 
         public string GetMessage(UserNotice twitchNotice)
         {
             string sUsername = twitchNotice.Username;
 
-            if (SubscriberMessages.ContainsKey(sUsername.ToLower()))
-            {
-                return CreateMessage(SubscriberMessages[sUsername.ToLower()], twitchNotice);
-            }
-            else
-            {
-                return CreateMessage(SubscriberMessages["default"], twitchNotice);
-            }
+            return CreateMessage(m_subscriberMessages.ContainsKey(sUsername.ToLower()) ? m_subscriberMessages[sUsername.ToLower()] : m_subscriberMessages["default"], twitchNotice);
         }
 
-        protected string CreateMessage(SubscriberMessage subscriberMessage, UserNotice twitchNotice)
+        private string CreateMessage(SubscriberMessage subscriberMessage, UserNotice twitchNotice)
         {
-            string sUsername = twitchNotice.Username;
+            string username = twitchNotice.Username;
             UserNotice.SubscriptionType subscriptionType = twitchNotice.MessageID;
             UserNotice.SubscriptionPlan subscriptionPlan = twitchNotice.SubPlan;
 
-            string sMessage = "";
+            string message = "";
 
             switch (subscriptionType)
             {
                 case UserNotice.SubscriptionType.Gift:
                     {
-                        sMessage = subscriberMessage.GiftingMessage;
+                        message = subscriberMessage.GiftingMessage;
                         break;
                     }
                 case UserNotice.SubscriptionType.Sub:
@@ -60,22 +48,22 @@ namespace SubscriberNotificationMod
                         {
                             case UserNotice.SubscriptionPlan.Prime:
                                 {
-                                    sMessage = subscriberMessage.PrimeMessage;
+                                    message = subscriberMessage.PrimeMessage;
                                     break;
                                 }
                             case UserNotice.SubscriptionPlan.Tier1:
                                 {
-                                    sMessage = subscriberMessage.TierOneMessage;
+                                    message = subscriberMessage.TierOneMessage;
                                     break;
                                 }
                             case UserNotice.SubscriptionPlan.Tier2:
                                 {
-                                    sMessage = subscriberMessage.TierTwoMessage;
+                                    message = subscriberMessage.TierTwoMessage;
                                     break;
                                 }
                             case UserNotice.SubscriptionPlan.Tier3:
                                 {
-                                    sMessage = subscriberMessage.TierThreeMessage;
+                                    message = subscriberMessage.TierThreeMessage;
                                     break;
                                 }
                         }
@@ -85,28 +73,28 @@ namespace SubscriberNotificationMod
 
             if (subscriptionType == UserNotice.SubscriptionType.Resub)
             {
-                sMessage += subscriberMessage.SubStreakMessage;
+                message += subscriberMessage.SubStreakMessage;
             }
 
-            sMessage = sMessage.Replace(UsernameVariable, sUsername);
-            sMessage = sMessage.Replace(SubStreakVariable, twitchNotice.ResubConsecutiveMonths.ToString());
-            sMessage = sMessage.Replace(GiftRecipient, twitchNotice.GiftedSubscriptionRecipientName);
-            sMessage = sMessage.Replace(GiftedSubCount, twitchNotice.GiftedSubscriptionsCount.ToString());
-            sMessage = sMessage.Replace(SubType, twitchNotice.SubscriptionPlanName);
+            message = message.Replace(USERNAME_VARIABLE, subscriberMessage.Username);
+            message = message.Replace(SUB_STREAK_VARIABLE, twitchNotice.ResubConsecutiveMonths.ToString());
+            message = message.Replace(GIFT_RECIPIENT, twitchNotice.GiftedSubscriptionRecipientName);
+            message = message.Replace(GIFTED_SUB_COUNT, twitchNotice.GiftedSubscriptionsCount.ToString());
+            message = message.Replace(SUB_TYPE, twitchNotice.SubscriptionPlanName);
 
-            return sMessage;
+            return message;
         }
     }
 
     public class SubscriberMessage
     {                                       
-        public string Username;
-        public string TierOneMessage =      "Thank you {username} for subscribing to the channel";
-        public string TierTwoMessage =      "Thank you {username} for subscribing to the channel with a {subtype} sub";
-        public string TierThreeMessage =    "Thank you {username} for subscribing to the channel with a {subtype} sub";
-        public string PrimeMessage =        "Thank you {username} for subscribing to the channel using Twitch Prime";
-        public string GiftingMessage =      "Thank you {username} for gifting {giftusername} a {subtype}";
-        public string SubStreakMessage =    "and thank you for remaining subscribed for {substreak} months";
+        public readonly string Username;
+        public readonly string TierOneMessage =      "Thank you {username} for subscribing to the channel";
+        public readonly string TierTwoMessage =      "Thank you {username} for subscribing to the channel with a {subtype} sub";
+        public readonly string TierThreeMessage =    "Thank you {username} for subscribing to the channel with a {subtype} sub";
+        public readonly string PrimeMessage =        "Thank you {username} for subscribing to the channel using Twitch Prime";
+        public readonly string GiftingMessage =      "Thank you {username} for gifting {giftusername} a {subtype}";
+        public readonly string SubStreakMessage =    "and thank you for remaining subscribed for {substreak} months";
 
         public SubscriberMessage(string sUsername = "default")
         {
