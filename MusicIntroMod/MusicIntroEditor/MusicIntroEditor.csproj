@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{285E002F-3890-4CEA-A089-574691325965}</ProjectGuid>
+    <ProjectGuid>{407867A5-134C-4C8A-92F9-5AE57341F073}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>TucxbotForm</RootNamespace>
-    <AssemblyName>TucxbotForm</AssemblyName>
+    <RootNamespace>MusicIntroEditor</RootNamespace>
+    <AssemblyName>MusicIntroEditor</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,10 +32,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MusicIntroMod">
+      <HintPath>..\MusicIntroMod\bin\Debug\MusicIntroMod.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -48,34 +49,18 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="TwitchIRC">
-      <HintPath>..\..\TwitchIRC\TwitchIRC\bin\Debug\TwitchIRC.dll</HintPath>
-    </Reference>
-    <Reference Include="websocket-sharp, Version=1.0.2.32519, Culture=neutral, PublicKeyToken=5660b08a1845a91e">
-      <HintPath>..\packages\WebSocketSharp-NonPreRelease.1.0.0\lib\net35\websocket-sharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainForm.cs">
+    <Compile Include="MusicIntroEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
+    <Compile Include="MusicIntroEditorForm.Designer.cs">
+      <DependentUpon>MusicIntroEditorForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Mods\IModHandler.cs" />
-    <Compile Include="Mods\Listeners\ChatMessageListener.cs" />
-    <Compile Include="Mods\Listeners\IModListener.cs" />
-    <Compile Include="Mods\Listeners\SubscriberListener.cs" />
-    <Compile Include="Mods\Listeners\UserLeftListener.cs" />
-    <Compile Include="Mods\Listeners\UserJoinedListener.cs" />
-    <Compile Include="Mods\Listeners\WhisperMessageListener.cs" />
-    <Compile Include="Mods\ModManager.cs" />
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
+    <EmbeddedResource Include="MusicIntroEditorForm.resx">
+      <DependentUpon>MusicIntroEditorForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
