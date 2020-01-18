@@ -71,6 +71,7 @@
     <Compile Include="Mods\Listeners\UserJoinedListener.cs" />
     <Compile Include="Mods\Listeners\WhisperMessageListener.cs" />
     <Compile Include="Mods\ModManager.cs" />
+    <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainForm.resx">

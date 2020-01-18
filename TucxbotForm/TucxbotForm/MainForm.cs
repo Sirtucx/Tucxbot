@@ -280,9 +280,9 @@
                 m_channelOutputTB.Invoke(new Action(delegate { OnChatMessageReceived(sender, e); }));
                 return;
             }
-            m_channelOutputTB.Text += $@"#{e.ChatMessage.Channel}| {e.ChatMessage.Username}: {e.ChatMessage.Message}\n";
+            m_channelOutputTB.Text += $"#{e.ChatMessage.Channel}| {e.ChatMessage.Username}: {e.ChatMessage.Message}\n";
             
-            Console.WriteLine($@"#{e.ChatMessage.Channel}\n{e.ChatMessage.Username}: {e.ChatMessage.Message}");
+            Console.WriteLine($"#{e.ChatMessage.Channel}\n{e.ChatMessage.Username}: {e.ChatMessage.Message}");
         }
         private void OnWhisperMessageReceived(object sender, OnWhisperMessageReceivedEventArgs e)
         {
@@ -291,9 +291,9 @@
                 m_whisperOutputTB.Invoke(new Action(delegate { OnWhisperMessageReceived(sender, e); }));
                 return;
             }
-            m_whisperOutputTB.Text += $@"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}\n";
+            m_whisperOutputTB.Text += $"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}\n";
             
-            Console.WriteLine($@"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}");
+            Console.WriteLine($"{e.WhisperMessage.Username} whispered: {e.WhisperMessage.Message}");
         }
         #endregion Twitch Client Events
 
