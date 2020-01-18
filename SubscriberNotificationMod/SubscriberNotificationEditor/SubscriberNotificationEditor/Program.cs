@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TucxbotForm
+namespace SubscriberNotificationEditor
 {
     static class Program
     {
@@ -16,17 +16,7 @@ namespace TucxbotForm
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            
-#if DEBUG
-            NativeMethods.AllocConsole();
-            Console.WriteLine("Debug Console");
-#endif
-            
-            Application.Run(new MainForm());
-            
-#if DEBUG
-            NativeMethods.FreeConsole();
-#endif
+            Application.Run(new SubscriberNotificationEditorForm());
         }
     }
 }
