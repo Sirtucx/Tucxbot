@@ -17,6 +17,7 @@
         {
             m_modLibrary = new Dictionary<string, TModType>();
             m_modListener = (TModListener) Activator.CreateInstance(typeof(TModListener), twitchClient);
+            m_modListener.RegisterEvents();
             m_modListener.OnInputReceived += HandleInput;
         }
 
