@@ -1,78 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
-using MusicIntroMod;
-using Newtonsoft.Json;
 
 namespace MusicIntroEditor
 {
+    using System;
+    using System.Windows.Forms;
+    using System.IO;
+    using MusicIntroMod;
+    using Newtonsoft.Json;
+    
     public partial class MusicIntroEditorForm : Form
     {
-        private IntroSettings m_LoadedSettings;
+        private IntroSettings m_loadedSettings;
         public MusicIntroEditorForm()
         {
             InitializeComponent();
         }
 
-        private void Log(string sMessage)
+        private bool LoadSettingsFile(out string fileName)
         {
-            rtBoxLog.Text += $"{sMessage}\n";
-            rtBoxLog.SelectionStart = rtBoxLog.Text.Length;
-            rtBoxLog.ScrollToCaret();
-        }
-
-        private void btnGenerate_Click(object sender, EventArgs e)
-        {
-            Clear();
-            SaveFileDialog fileDialog = new SaveFileDialog();
-            fileDialog.InitialDirectory = Environment.CurrentDirectory;
-            fileDialog.Filter = "JSON File (*.json)|*.json";
-            fileDialog.FilterIndex = 0;
-            
-            if (fileDialog.ShowDialog() == DialogResult.OK)
-            {
-                StreamWriter writer = new StreamWriter(fileDialog.FileName, false);
-
-                m_LoadedSettings = new IntroSettings();
-                string defaultJSON = JsonConvert.SerializeObject(m_LoadedSettings, Formatting.Indented);
-
-
-                writer.Write(defaultJSON);
-                writer.Flush();
-                writer.Close();
-
-                if (m_LoadedSettings != null)
-                {
-                    groupAddUser.Visible = true;
-                    groupGenerate.Visible = false;
-                    groupContents.Visible = false;
-                    cBoxUsers.Items.Clear();
-                    tBoxExistingPath.Text = "";
-                    Log($"Generated JSON file at {fileDialog.FileName}");
-                }
-            }
-        }
-
-        private void btnOpen_Click(object sender, EventArgs e)
-        {
-            Clear();
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.InitialDirectory = Environment.CurrentDirectory;
-            ofd.Filter = "JSON Files (*.json)|*.json";
+            ofd.Filter = @"JSON Files (*.json)|*.json";
             ofd.FilterIndex = 0;
+            bool hasLoadedSettings = false;
             
-
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                StreamReader reader;
-                if ((reader = new StreamReader(ofd.OpenFile())) != null)
+                using (StreamReader reader = new StreamReader(ofd.OpenFile()))
                 {
                     string rawJson = reader.ReadToEnd();
 
@@ -80,136 +35,178 @@ namespace MusicIntroEditor
                     reader.Close();
                     if (tempSettings != null)
                     {
-                        m_LoadedSettings = tempSettings;
+                        m_loadedSettings = tempSettings;
+                        hasLoadedSettings = true;
                     }
                 }
             }
+            
+            fileName = ofd.FileName;
+            return hasLoadedSettings;
+        }
+        private void Log(string sMessage)
+        {
+            logRichTextBox.Text += $@"{sMessage}\n";
+            logRichTextBox.SelectionStart = logRichTextBox.Text.Length;
+            logRichTextBox.ScrollToCaret();
+        }
+        private void Clear()
+        {
+            groupAddUser.Visible = false;
+            pathTextBox.Text = "";
+            userTextBox.Text = "";
+        }
 
-            if (m_LoadedSettings != null)
+        private void GenerateButton_Click(object sender, EventArgs e)
+        {
+            Clear();
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            fileDialog.InitialDirectory = Environment.CurrentDirectory;
+            fileDialog.Filter = @"JSON File (*.json)|*.json";
+            fileDialog.FilterIndex = 0;
+            
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                StreamWriter writer = new StreamWriter(fileDialog.FileName, false);
+
+                m_loadedSettings = new IntroSettings();
+                string defaultJson = JsonConvert.SerializeObject(m_loadedSettings, Formatting.Indented);
+
+
+                writer.Write(defaultJson);
+                writer.Flush();
+                writer.Close();
+
+                if (m_loadedSettings != null)
+                {
+                    groupAddUser.Visible = true;
+                    groupGenerate.Visible = false;
+                    groupContents.Visible = false;
+                    userComboBox.Items.Clear();
+                    existingPathTextBox.Text = "";
+                    Log($"Generated JSON file at {fileDialog.FileName}");
+                }
+            }
+        }
+        private void OpenButton_Click(object sender, EventArgs e)
+        {
+            Clear();
+            
+            if (LoadSettingsFile(out string fileName) && m_loadedSettings != null)
             {
                 groupGenerate.Visible = false;
                 groupAddUser.Visible = true;
-                groupContents.Visible = m_LoadedSettings.UserData.Count > 0;
+                groupContents.Visible = m_loadedSettings.UserData.Count > 0;
 
-                if (m_LoadedSettings.UserData.Count > 0)
+                if (m_loadedSettings.UserData.Count > 0)
                 {
-                    btnSave.Visible = true;
-                    cBoxUsers.Items.Clear();
-                    foreach (User user in m_LoadedSettings.UserData)
+                    saveButton.Visible = true;
+                    userComboBox.Items.Clear();
+                    foreach (User user in m_loadedSettings.UserData)
                     {
-                        cBoxUsers.Items.Add(user.Username);
+                        userComboBox.Items.Add(user.Username);
                     }
-                    cBoxUsers.SelectedIndex = 0;
-                    tBoxExistingPath.Text = m_LoadedSettings.UserData[0].FileName;
-                    tBoxExistingPath.SelectionStart = rtBoxLog.Text.Length;
-                    tBoxExistingPath.ScrollToCaret();
+                    userComboBox.SelectedIndex = 0;
+                    existingPathTextBox.Text = m_loadedSettings.UserData[0].FileName;
+                    existingPathTextBox.SelectionStart = logRichTextBox.Text.Length;
+                    existingPathTextBox.ScrollToCaret();
                 }
-                Log($"Loaded Settings ({ofd.FileName})");
+                Log($"Loaded Settings ({fileName})");
             }
             else
             {
-                Log($"Failed to load file ({ofd.FileName})");
+                Log($"Failed to load file ({fileName})");
             }
         }
-
-        private void btnLoadMusic_Click(object sender, EventArgs e)
+        private void LoadMusicButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.InitialDirectory = Environment.CurrentDirectory;
-            ofd.Filter = "MP3 files (*.mp3)|*.mp3|Windows Audio Files (*.wav)|*.wav";
+            ofd.Filter = @"MP3 files (*.mp3)|*.mp3|Windows Audio Files (*.wav)|*.wav";
             ofd.FilterIndex = 0;
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 string fileName = ofd.FileName;
-                tBoxPath.Text = fileName;
-                tBoxPath.SelectionStart = rtBoxLog.Text.Length;
-                tBoxPath.ScrollToCaret();
+                pathTextBox.Text = fileName;
+                pathTextBox.SelectionStart = logRichTextBox.Text.Length;
+                pathTextBox.ScrollToCaret();
             }
         }
-
-        private void btnAddUser_Click(object sender, EventArgs e)
+        private void AddUserButton_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(tBoxPath.Text))
+            if (string.IsNullOrEmpty(pathTextBox.Text) || string.IsNullOrEmpty(userTextBox.Text))
             {
-                if (!string.IsNullOrEmpty(tBoxUser.Text))
-                {
-                    bool bFound = false;
-                    foreach(User user in m_LoadedSettings.UserData)
-                    {
-                        if (user.Username == tBoxUser.Text)
-                        {
-                            user.FileName = tBoxPath.Text;
-                            bFound = true;
-                            Log($"Edited {tBoxUser.Text} in Settings");
-                        }
-                    }
-                    if (!bFound)
-                    {
-                        m_LoadedSettings.UserData.Add(new User(tBoxUser.Text, tBoxPath.Text));
-                        Log($"Added {tBoxUser.Text} to Settings");
-                    }
-
-                    groupContents.Visible = true;
-                    btnSave.Visible = true;
-                    cBoxUsers.Items.Clear();
-                    foreach (User user in m_LoadedSettings.UserData)
-                    {
-                        cBoxUsers.Items.Add(user.Username);
-                    }
-                    cBoxUsers.SelectedIndex = 0;
-                    tBoxExistingPath.Text = m_LoadedSettings.UserData[0].FileName;
-                    tBoxExistingPath.SelectionStart = rtBoxLog.Text.Length;
-                    tBoxExistingPath.ScrollToCaret();
-
-                }
+                return;
             }
-        }
+            
 
-        private void Clear()
+            List<User> matchingUsers = m_loadedSettings.UserData.Where(user => user.Username == userTextBox.Text).ToList();
+            bool hasFoundUser = matchingUsers.Count > 0;
+            
+            foreach(User user in matchingUsers)
+            {
+                user.FileName = pathTextBox.Text;
+                Log($"Edited {userTextBox.Text} in Settings");
+            }
+            
+            if (!hasFoundUser)
+            {
+                m_loadedSettings.UserData.Add(new User(userTextBox.Text, pathTextBox.Text));
+                Log($"Added {userTextBox.Text} to Settings");
+            }
+
+            groupContents.Visible = true;
+            saveButton.Visible = true;
+            userComboBox.Items.Clear();
+            foreach (User user in m_loadedSettings.UserData)
+            {
+                userComboBox.Items.Add(user.Username);
+            }
+            userComboBox.SelectedIndex = 0;
+            existingPathTextBox.Text = m_loadedSettings.UserData[0].FileName;
+            existingPathTextBox.SelectionStart = logRichTextBox.Text.Length;
+            existingPathTextBox.ScrollToCaret();
+        }
+        private void UserComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            groupAddUser.Visible = false;
-            tBoxPath.Text = "";
-            tBoxUser.Text = "";
+            existingPathTextBox.Text = m_loadedSettings.UserData[userComboBox.SelectedIndex].FileName;
         }
-
-        private void cBoxUsers_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            tBoxExistingPath.Text = m_LoadedSettings.UserData[cBoxUsers.SelectedIndex].FileName;
-        }
-
-        private void btnSave_Click(object sender, EventArgs e)
+        private void SaveButton_Click(object sender, EventArgs e)
         {
             SaveFileDialog fileDialog = new SaveFileDialog();
             fileDialog.InitialDirectory = Environment.CurrentDirectory;
-            fileDialog.Filter = "JSON File (*.json)|*.json";
+            fileDialog.Filter = @"JSON File (*.json)|*.json";
             fileDialog.FilterIndex = 0;
 
-            if (fileDialog.ShowDialog() == DialogResult.OK)
+            if (fileDialog.ShowDialog() != DialogResult.OK)
             {
-                StreamWriter writer = new StreamWriter(fileDialog.FileName, false);
-                writer.Write(JsonConvert.SerializeObject(m_LoadedSettings));
+                Log($@"Failed to save {fileDialog.FileName}!");
+                return;
+            }
+            using (StreamWriter writer = new StreamWriter(fileDialog.FileName, false))
+            {
+                writer.Write(JsonConvert.SerializeObject(m_loadedSettings));
                 writer.Flush();
                 writer.Close();
                 Log($"Saved Settings ({fileDialog.FileName}");
             }
         }
-
-        private void btnDelete_Click(object sender, EventArgs e)
+        private void DeleteButton_Click(object sender, EventArgs e)
         {
-            Log($"Removed {m_LoadedSettings.UserData[cBoxUsers.SelectedIndex].Username}");
-            m_LoadedSettings.UserData.RemoveAt(cBoxUsers.SelectedIndex);
-            if (m_LoadedSettings.UserData.Count > 0)
+            Log($"Removed {m_loadedSettings.UserData[userComboBox.SelectedIndex].Username}");
+            m_loadedSettings.UserData.RemoveAt(userComboBox.SelectedIndex);
+            if (m_loadedSettings.UserData.Count > 0)
             {
-                cBoxUsers.Items.Clear();
-                foreach (User user in m_LoadedSettings.UserData)
+                userComboBox.Items.Clear();
+                foreach (User user in m_loadedSettings.UserData)
                 {
-                    cBoxUsers.Items.Add(user.Username);
+                    userComboBox.Items.Add(user.Username);
                 }
-                cBoxUsers.SelectedIndex = 0;
-                tBoxExistingPath.Text = m_LoadedSettings.UserData[0].FileName;
-                tBoxExistingPath.SelectionStart = rtBoxLog.Text.Length;
-                tBoxExistingPath.ScrollToCaret();
+                userComboBox.SelectedIndex = 0;
+                existingPathTextBox.Text = m_loadedSettings.UserData[0].FileName;
+                existingPathTextBox.SelectionStart = logRichTextBox.Text.Length;
+                existingPathTextBox.ScrollToCaret();
             }
             else
             {

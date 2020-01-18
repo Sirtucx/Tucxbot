@@ -1,97 +1,108 @@
-﻿using System;
-using System.Collections.Generic;
-using WMPLib;
-using System.IO;
-using Newtonsoft.Json;
-using Twitch_Websocket;
-using Twitch_Websocket.Mod_Interfaces;
-using System.Threading;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
-
-namespace MusicIntroMod
+﻿namespace MusicIntroMod
 {
-    public class SoundPlayerManager : IChatMessageMod
+    using System;
+    using System.Collections.Generic;
+    using WMPLib;
+    using System.IO;
+    using Newtonsoft.Json;
+    using System.Threading;
+    using System.Windows.Forms;
+    using Microsoft.VisualBasic;
+    using Twitch.Mods;
+    using Twitch.Containers;
+    
+    public class SoundPlayerManager : ChatMessageMod
     {
-        private Dictionary<string, string> m_UserSoundPaths;
-        private List<string> m_sUsersPlayed;
-        private Queue<string> m_sUserQueue;
-        private IntroSettings m_IntroSettings;
-        private WindowsMediaPlayer m_WMPlayer;
-        private Thread m_PlayerThread;
-        private bool m_bIsActive;
+        private List<string> m_usersPlayed;
+        private IntroSettings m_introSettings;
+        private Thread m_playerThread;
+        private bool m_isActive;
+        
+        private readonly Queue<string> m_userQueue;
+        private readonly Dictionary<string, string> m_userSoundPaths;
+        private readonly WindowsMediaPlayer m_windowsMediaPlayer;
 
         public SoundPlayerManager()
         {
-            m_UserSoundPaths = new Dictionary<string, string>();
-            m_sUsersPlayed = new List<string>();
-            m_sUserQueue = new Queue<string>();
-            m_WMPlayer = new WindowsMediaPlayer();
+            m_userSoundPaths = new Dictionary<string, string>();
+            m_usersPlayed = new List<string>();
+            m_userQueue = new Queue<string>();
+            m_windowsMediaPlayer = new WindowsMediaPlayer();
             LoadUsers();
-            m_bIsActive = true;
-            m_PlayerThread = new Thread(new ThreadStart(SoundThread));
-            m_PlayerThread.Start();
+            m_isActive = true;
+            m_playerThread = new Thread(SoundThread);
+            m_playerThread.Start();
         }
-        public void Process(ChatMessage chatMessage)
+
+        protected override void ProcessChatMessage(ChatMessage chatMessage)
         {
-            bool bCommandTyped = false;
+            bool hasCommandBeenTyped = false;
 
             if (chatMessage.Username == chatMessage.Channel)
             {
-                if (chatMessage.Message == "!mim_skip")
+                switch (chatMessage.Message)
                 {
-                    Skip();
-                    bCommandTyped = true;
-                }
-                else if (chatMessage.Message == "!mim_skipall")
-                {
-                    SkipAll();
-                    bCommandTyped = true;
-                }
-                else if (chatMessage.Message == "!mim_reloadall")
-                {
-                    m_sUsersPlayed.Clear();
-                    bCommandTyped = true;
+                    case "!mim_skip":
+                    {
+                        Skip();
+                        hasCommandBeenTyped = true;
+                        break;
+                    }
+                    case "!mim_skipall":
+                    {
+                        SkipAll();
+                        hasCommandBeenTyped = true;
+                        break;
+                    }
+                    case "!mim_reloadall":
+                    {
+                        m_usersPlayed.Clear();
+                        hasCommandBeenTyped = true;
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
                 }
             }
 
-            if (!bCommandTyped)
+            if (!hasCommandBeenTyped)
             {
                 PlaySound(chatMessage.Username);
             }
         }
-        public void Shutdown()
+        public override void Shutdown()
         {
-            m_bIsActive = false;
-            m_sUserQueue.Clear();
-            m_UserSoundPaths.Clear();
-            m_WMPlayer.controls.stop();
+            m_isActive = false;
+            m_userQueue.Clear();
+            m_userSoundPaths.Clear();
+            m_windowsMediaPlayer.controls.stop();
+            m_playerThread = null;
         }
+        
         private void Skip()
         {
-            if (m_WMPlayer.playState == WMPPlayState.wmppsPlaying)
+            if (m_windowsMediaPlayer.playState == WMPPlayState.wmppsPlaying)
             {
-                m_WMPlayer.controls.stop();
+                m_windowsMediaPlayer.controls.stop();
             }
         }
         private void SkipAll()
         {
-            foreach (KeyValuePair <string, string> kvp in m_UserSoundPaths)
+            foreach (KeyValuePair <string, string> kvp in m_userSoundPaths)
             {
-                if (m_sUsersPlayed == null)
+                if (m_usersPlayed == null)
                 {
-                    m_sUsersPlayed = new List<string>();
+                    m_usersPlayed = new List<string>();
                 }
-                if (!m_sUsersPlayed.Contains(kvp.Key))
+                if (!m_usersPlayed.Contains(kvp.Key))
                 {
-                    m_sUsersPlayed.Add(kvp.Key);
+                    m_usersPlayed.Add(kvp.Key);
                 }
             }
 
-            if (m_sUserQueue != null)
-            {
-                m_sUserQueue.Clear();
-            }
+            m_userQueue?.Clear();
             Skip();
         }
         private void LoadUsers()
@@ -101,70 +112,82 @@ namespace MusicIntroMod
             fileDialog.InitialDirectory = Environment.CurrentDirectory;
             fileDialog.Filter = "JSON File (*.json)|*.json";
             fileDialog.FilterIndex = 0;
-            bool bSelectedFile = false;
+            bool hasSelectedValidFile = false;
 
-            while (!bSelectedFile)
+            do
             {
-                if (fileDialog.ShowDialog() == DialogResult.OK)
+                if (fileDialog.ShowDialog() != DialogResult.OK)
                 {
-                    try
-                    {
-                        using (StreamReader sr = new StreamReader(fileDialog.FileName))
-                        {
-                            if (sr.Peek() >= 0)
-                            {
-                                string rawData = sr.ReadToEnd();
-                                m_IntroSettings = JsonConvert.DeserializeObject<IntroSettings>(rawData);
+                    continue;
+                }
 
-                                if (m_IntroSettings != null)
-                                {
-                                    foreach (User user in m_IntroSettings.UserData)
-                                    {
-                                        m_UserSoundPaths.Add(user.Username.ToLower(), user.FileName);
-                                    }
-                                    bSelectedFile = true;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception e)
+                hasSelectedValidFile = ValidateSettingsFile(fileDialog.FileName);
+            }
+            while (!hasSelectedValidFile);
+        }
+        private bool ValidateSettingsFile(string fileName)
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader(fileName))
+                {
+                    if (sr.Peek() < 0)
                     {
-                        Interaction.MsgBox($"Unfortunately, there was an issue loading\n{fileDialog.FileName}. It was most likely not formatted properly. Please use a JSON parser to fix your settings file.\nOnce you have done so please reload this mod and try again.");
-                        bSelectedFile = true;
+                        return false;
+                    }
+
+                    string rawData = sr.ReadToEnd();
+                    m_introSettings = JsonConvert.DeserializeObject<IntroSettings>(rawData);
+
+                    if (m_introSettings != null)
+                    {
+                        foreach (User user in m_introSettings.UserData)
+                        {
+                            m_userSoundPaths.Add(user.Username.ToLower(), user.FileName);
+                        }
+                        return true;
                     }
                 }
             }
-        }
-        private void PlaySound(string sUsername)
-        {
-            if (m_UserSoundPaths.ContainsKey(sUsername))
+            catch (Exception e)
             {
-                if (!m_sUsersPlayed.Contains(sUsername))
+                Interaction.MsgBox(
+                    $"Unfortunately, there was an issue loading\n{fileName}. It was most likely not formatted properly. Please use a JSON parser to fix your settings file.\nOnce you have done so please reload this mod and try again.");
+                return true;
+            }
+
+            return false;
+        }
+        private void PlaySound(string username)
+        {
+            if (m_userSoundPaths.ContainsKey(username))
+            {
+                if (!m_usersPlayed.Contains(username))
                 {
-                    m_sUserQueue.Enqueue(sUsername);
+                    m_userQueue.Enqueue(username);
                 }
             }
         }
         private void SoundThread()
         {
-            while (m_bIsActive)
+            while (m_isActive)
             {
                 try
                 {
-                    if (m_WMPlayer.playState != WMPPlayState.wmppsPlaying)
+                    if (m_windowsMediaPlayer.playState != WMPPlayState.wmppsPlaying)
                     {
-                        if (m_sUserQueue.Count > 0)
+                        if (m_userQueue.Count > 0)
                         {
-                            string sQueuedUsername = m_sUserQueue.Dequeue();
-                            m_WMPlayer.URL = m_UserSoundPaths[sQueuedUsername];
-                            m_sUsersPlayed.Add(sQueuedUsername);
-                            m_WMPlayer.controls.play();
+                            string queuedUsername = m_userQueue.Dequeue();
+                            m_windowsMediaPlayer.URL = m_userSoundPaths[queuedUsername];
+                            m_usersPlayed.Add(queuedUsername);
+                            m_windowsMediaPlayer.controls.play();
                         }
                     }
                 }
                 catch (Exception e)
                 {
-
+                    // ignored
                 }
             }
         }
