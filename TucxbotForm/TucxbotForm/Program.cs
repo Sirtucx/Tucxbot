@@ -16,7 +16,17 @@ namespace TucxbotForm
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            
+#if DEBUG
+            NativeMethods.AllocConsole();
+            Console.WriteLine("Debug Console");
+#endif
+            
             Application.Run(new MainForm());
+            
+#if DEBUG
+            NativeMethods.FreeConsole();
+#endif
         }
     }
 }
