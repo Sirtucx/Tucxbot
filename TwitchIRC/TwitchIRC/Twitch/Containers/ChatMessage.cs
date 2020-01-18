@@ -5,62 +5,69 @@
     
     public class ChatMessage
     {
-        public string Raw { get; protected set; }
-        public string Channel { get; protected set; }
-
-        public BadgeCollection Badges { get; protected set; }
-        public int Bits { get; protected set; }
-        public string ColorHex { get; protected set; }
-        public string DisplayName { get; protected set; }
-        public EmoteCollection Emotes { get; protected set; }
-        public string ID { get; protected set; }
-        public string Message { get; protected set; }
-        public bool Mod { get; protected set; }
-        public int ChannelID { get; protected set; }
-        public bool Subscriber { get; protected set; }
-        public bool Turbo { get; protected set; }
-        public string Username { get; protected set; }
-        public int UserID { get; protected set; }
-        public enum UserType { Moderator, GlobalModerator, Admin, Staff, Viewer }
-        public UserType UsersType { get; protected set; }
-
-        public ChatMessage(string sIRCRaw)
+        public enum UserType
         {
-            // Raw IRC string
-            Raw = sIRCRaw;
+            Moderator,
+            GlobalModerator,
+            Admin,
+            Staff,
+            Viewer
+        }
+
+        public string RawMessage { get; }
+        public string Channel { get; }
+        public BadgeCollection Badges { get; }
+        public int Bits { get; }
+        public string ColorHex { get; }
+        public string DisplayName { get; }
+        public EmoteCollection Emotes { get; }
+        public string Id { get; }
+        public string Message { get; }
+        public bool Mod { get; }
+        public int ChannelId { get; }
+        public bool Subscriber { get; }
+        public bool Turbo { get; }
+        public string Username { get; }
+        public int UserId { get; }
+        public UserType UsersType { get; }
+
+        public ChatMessage(string ircRawMessage)
+        {
+            // RawMessage IRC string
+            RawMessage = ircRawMessage;
             // Channel notice was sent in
-            Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1, sIRCRaw.IndexOf(' ', sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1) - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1));
+            Channel = ircRawMessage.Substring(ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1, ircRawMessage.IndexOf(' ', ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1) - (ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1));
             // Bits (Total)
-            int iNumBits = 0;
-            Int32.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "bits"), out iNumBits);
-            Bits = iNumBits;
+            int numberOfBits = 0;
+            Int32.TryParse(IRCParser.GetTwitchTagsValue(ircRawMessage, "bits"), out numberOfBits);
+            Bits = numberOfBits;
             // Badges
-            Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
+            Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(ircRawMessage, "@badges"));
             // Color
-            ColorHex = IRCParser.GetTwitchTagsValue(sIRCRaw, "color");
+            ColorHex = IRCParser.GetTwitchTagsValue(ircRawMessage, "color");
             // Display Name
-            DisplayName = IRCParser.GetTwitchTagsValue(sIRCRaw, "display-name").Replace(" ", "");
+            DisplayName = IRCParser.GetTwitchTagsValue(ircRawMessage, "display-name").Replace(" ", "");
             // Emotes Used
-            Emotes = new EmoteCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "emotes"));
+            Emotes = new EmoteCollection(IRCParser.GetTwitchTagsValue(ircRawMessage, "emotes"));
             // Message
-            string[] sMessageSplit = sIRCRaw.Split(new string[] { $"#{Channel} :" }, System.StringSplitOptions.None);
-            Message = sMessageSplit[1];
+            string[] messageSplit = ircRawMessage.Split(new string[] { $"#{Channel} :" }, System.StringSplitOptions.None);
+            Message = messageSplit[1];
             // Mod Status
-            Mod = IRCParser.GetTwitchTagsValue(sIRCRaw, "mod") == "1";
+            Mod = IRCParser.GetTwitchTagsValue(ircRawMessage, "mod") == "1";
             // Channel ID (Room ID)
-            ChannelID = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "room-id"));
+            ChannelId = int.Parse(IRCParser.GetTwitchTagsValue(ircRawMessage, "room-id"));
             // Subscriber Status
-            Subscriber = IRCParser.GetTwitchTagsValue(sIRCRaw, "subscriber") == "1";
+            Subscriber = IRCParser.GetTwitchTagsValue(ircRawMessage, "subscriber") == "1";
             // Username
-            string[] sTagSplit = sIRCRaw.Split(' ');
-            Username = sTagSplit[1].Substring(sTagSplit[1].IndexOf('!') + 1, (sTagSplit[1].IndexOf('@')) - (sTagSplit[1].IndexOf('!') + 1));
+            string[] tagSplit = ircRawMessage.Split(' ');
+            Username = tagSplit[1].Substring(tagSplit[1].IndexOf('!') + 1, (tagSplit[1].IndexOf('@')) - (tagSplit[1].IndexOf('!') + 1));
             // Twitch Turbo/Prime Status
-            Turbo = IRCParser.GetTwitchTagsValue(sIRCRaw, "turbo") == "1";
+            Turbo = IRCParser.GetTwitchTagsValue(ircRawMessage, "turbo") == "1";
             // User ID
-            UserID = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "user-id"));
+            UserId = int.Parse(IRCParser.GetTwitchTagsValue(ircRawMessage, "user-id"));
             // User Type
-            string sUserTypeRaw = IRCParser.GetTwitchTagsValue(sIRCRaw, "user-type");
-            switch (sUserTypeRaw)
+            string userTypeRaw = IRCParser.GetTwitchTagsValue(ircRawMessage, "user-type");
+            switch (userTypeRaw)
             {
                 case "mod":
                     {

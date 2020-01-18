@@ -4,37 +4,37 @@
     
     public class EmoteCollection
     {
-        private Dictionary<Emote, int> EmotesUsed;
+        private readonly Dictionary<Emote, int> EmotesUsed;
 
-        public EmoteCollection(string sEmoteValueRaw)
+        public EmoteCollection(string emoteValueRaw)
         {
-            if (!string.IsNullOrEmpty(sEmoteValueRaw))
+            if (!string.IsNullOrEmpty(emoteValueRaw))
             {
-                string[] sEmoteSplit = sEmoteValueRaw.Split('/');
+                string[] emoteSplit = emoteValueRaw.Split('/');
 
-                foreach (string emoteValues in sEmoteSplit)
+                foreach (string emoteValues in emoteSplit)
                 {
-                    string[] sEmoteKeyValue = emoteValues.Split(':');
-                    Emote emote = new Emote(int.Parse(sEmoteKeyValue[0]));
+                    string[] emoteKeyValue = emoteValues.Split(':');
+                    Emote emote = new Emote(int.Parse(emoteKeyValue[0]));
 
-                    string[] sIndexes = sEmoteKeyValue[1].Split(',');
+                    string[] indexes = emoteKeyValue[1].Split(',');
 
                     if (EmotesUsed == null)
                     {
                         EmotesUsed = new Dictionary<Emote, int>();
                     }
-                    EmotesUsed.Add(emote, sIndexes.Length);
+                    EmotesUsed.Add(emote, indexes.Length);
                 }
             }
         }
 
-        public int HowManyTimesEmoteUsed(int EmoteID)
+        public int HowManyTimesEmoteUsed(int emoteId)
         {
             if (EmotesUsed != null)
             {
-                if (EmotesUsed.ContainsKey(new Emote(EmoteID)))
+                if (EmotesUsed.ContainsKey(new Emote(emoteId)))
                 {
-                    return EmotesUsed[new Emote(EmoteID)];
+                    return EmotesUsed[new Emote(emoteId)];
                 }
             }
             return 0;

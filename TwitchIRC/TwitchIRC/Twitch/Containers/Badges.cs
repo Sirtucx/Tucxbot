@@ -1,84 +1,73 @@
 ﻿namespace Twitch.Containers
 {
     using System.Collections.Generic;
+    using System;
+    using System.Linq;
     
     public class BadgeCollection
     {
         public enum BadgeType
         {
-            Null,
+            Null = -1,
             Admin,
             Bit,
             Broadcaster,
-            Global_Mod,
+            GlobalMod,
             Moderator,
             Subscriber,
             Staff,
             TurboPrime
         }
 
-        public KeyValuePair<BadgeType, int> AdminBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> BitBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> BroadcasterBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> GlobalModBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> ModeratorBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> SubscriberBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> StaffBadge { get; protected set; }
-        public KeyValuePair<BadgeType, int> TurboPrimeBadge { get; protected set; }
-
-        public BadgeCollection(string sBadgeListRaw)
+        private readonly string[] m_badgeIdentifiers = new[]
         {
-            if (!string.IsNullOrEmpty(sBadgeListRaw))
+            "admin",
+            "bits",
+            "broadcaster",
+            "global_mod",
+            "moderator",
+            "subscriber",
+            "staff",
+            "premium"
+        };
+
+        private readonly List<Tuple<BadgeType, int>> m_badgeList;
+
+        public Tuple<BadgeType, int> AdminBadge =>       m_badgeList[(int) BadgeType.Admin];
+        public Tuple<BadgeType, int> BitBadge =>         m_badgeList[(int) BadgeType.Bit];
+        public Tuple<BadgeType, int> BroadcasterBadge => m_badgeList[(int) BadgeType.Broadcaster];
+        public Tuple<BadgeType, int> GlobalModBadge =>   m_badgeList[(int) BadgeType.GlobalMod];
+        public Tuple<BadgeType, int> ModeratorBadge =>   m_badgeList[(int) BadgeType.Moderator];
+        public Tuple<BadgeType, int> SubscriberBadge =>  m_badgeList[(int) BadgeType.Subscriber];
+        public Tuple<BadgeType, int> StaffBadge =>       m_badgeList[(int) BadgeType.Staff];
+        public Tuple<BadgeType, int> TurboPrimeBadge =>  m_badgeList[(int) BadgeType.TurboPrime];
+
+        public BadgeCollection(string badgeListRaw)
+        {
+            m_badgeList = new List<Tuple<BadgeType, int>>();
+            for (int i = 0; i < m_badgeIdentifiers.Length; ++i)
             {
-                string[] sBadgeList = sBadgeListRaw.Split(',');
+                m_badgeList.Add(null);
+            }
 
-                foreach (string sBadgeRaw in sBadgeList)
+            if (string.IsNullOrEmpty(badgeListRaw))
+            {
+                return;
+            }
+            
+            List<string> identifierList = m_badgeIdentifiers.ToList();
+            
+            string[] badgeList = badgeListRaw.Split(',');
+
+            foreach (string badgeRaw in badgeList)
+            {
+                string[] badge = badgeRaw.Split('/');
+
+                int identifierIndex = identifierList.IndexOf(badge[0]);
+
+                if (identifierIndex != -1)
                 {
-                    string[] sBadge = sBadgeRaw.Split('/');
-
-                    switch (sBadge[0])
-                    {
-                        case "admin":
-                            {
-                                AdminBadge = new KeyValuePair<BadgeType, int>(BadgeType.Admin, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "bits":
-                            {
-                                BitBadge = new KeyValuePair<BadgeType, int>(BadgeType.Bit, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "broadcaster":
-                            {
-                                BroadcasterBadge = new KeyValuePair<BadgeType, int>(BadgeType.Broadcaster, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "global_mod":
-                            {
-                                GlobalModBadge = new KeyValuePair<BadgeType, int>(BadgeType.Global_Mod, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "moderator":
-                            {
-                                ModeratorBadge = new KeyValuePair<BadgeType, int>(BadgeType.Moderator, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "staff":
-                            {
-                                StaffBadge = new KeyValuePair<BadgeType, int>(BadgeType.Staff, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "subscriber":
-                            {
-                                SubscriberBadge = new KeyValuePair<BadgeType, int>(BadgeType.Subscriber, int.Parse(sBadge[1]));
-                                break;
-                            }
-                        case "premium":
-                            {
-                                TurboPrimeBadge = new KeyValuePair<BadgeType, int>(BadgeType.TurboPrime, int.Parse(sBadge[1]));
-                                break;
-                            }
-                    }
+                    m_badgeList[identifierIndex] = new Tuple<BadgeType, int>((BadgeType)identifierIndex, int.Parse(badge[1]));
                 }
             }
         }

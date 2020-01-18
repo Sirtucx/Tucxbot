@@ -8,13 +8,13 @@ namespace Twitch.Containers
 {
     public class LoginData
     {
-        public string Username;
-        public string OAuth;
+        public readonly string Username;
+        public readonly string OAuth;
 
-        public LoginData(string sUsername, string sOAuth)
+        public LoginData(string username, string oAuth)
         {
-            Username = sUsername;
-            OAuth = sOAuth;
+            Username = username;
+            OAuth = oAuth;
         }
     }
 }

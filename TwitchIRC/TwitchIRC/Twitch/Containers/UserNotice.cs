@@ -4,64 +4,87 @@
     
     public class UserNotice
     {
-        public string Raw { get; protected set; }
-        public string Channel { get; protected set; }
-
-        public BadgeCollection Badges { get; protected set; }
-        public string ColorHex { get; protected set; }
-        public string DisplayName { get; protected set; }
-        public EmoteCollection Emotes { get; protected set; }
-        public string Message { get; protected set; }
-        public bool Mod { get; protected set; }
-        public enum SubscriptionType { None, Sub, Resub, Charity, Gift }
-        public SubscriptionType MessageID { get; protected set; }
-        public int ResubConsecutiveMonths { get; protected set; }
-        public enum SubscriptionPlan { None, Prime, Tier1, Tier2, Tier3 }
-        public SubscriptionPlan SubPlan { get; protected set; } = SubscriptionPlan.None;
-        public string SubscriptionPlanName { get; protected set; }
-        public string GiftedSubscriptionRecipientName { get; protected set; }
-        public int GiftedSubscriptionsCount { get; protected set; }
-        public int ChannelID { get; protected set; }
-        public bool Subscriber { get; protected set; }
-        public string SystemMessage { get; protected set; }
-        public bool Turbo { get; protected set; }
-        public string Username { get; protected set; }
-        public int UserID { get; protected set; }
-        public enum UserType { Moderator, GlobalModerator, Admin, Staff, Viewer }
-        public UserType UsersType { get; protected set; }
-
-        public UserNotice(string sIRCRaw)
+        public enum SubscriptionType
         {
-            // Raw IRC string
-            Raw = sIRCRaw;
+            None,
+            Sub,
+            Resub,
+            Charity,
+            Gift
+        }
+
+        public enum SubscriptionPlan
+        {
+            None,
+            Prime,
+            Tier1,
+            Tier2,
+            Tier3
+        }
+
+        public enum UserType
+        {
+            Moderator,
+            GlobalModerator,
+            Admin,
+            Staff,
+            Viewer
+        }
+
+        public string RawMessage { get; }
+        public string Channel { get; }
+        public BadgeCollection Badges { get; }
+        public string ColorHex { get; }
+        public string DisplayName { get; }
+        public EmoteCollection Emotes { get; }
+        public string Message { get; }
+        public bool Mod { get; }
+        public SubscriptionType MessageID { get; }
+        public int ResubConsecutiveMonths { get; }
+        public SubscriptionPlan SubPlan { get; } = SubscriptionPlan.None;
+        public string SubscriptionPlanName { get; }
+        public string GiftedSubscriptionRecipientName { get; }
+        public int GiftedSubscriptionsCount { get; }
+        public int ChannelID { get; }
+        public bool Subscriber { get; }
+        public string SystemMessage { get; }
+        public bool Turbo { get; }
+        public string Username { get; }
+        public int UserID { get; }
+        public UserType UsersType { get; }
+
+        public UserNotice(string ircRawMessage)
+        {
+            // RawMessage IRC string
+            RawMessage = ircRawMessage;
 
             // Channel notice was sent in
-            int iStartIndex = sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("USERNOTICE")) + 1;
-            int iLength = sIRCRaw.IndexOf(':', iStartIndex);
+            int startIndex = ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("USERNOTICE")) + 1;
+            int length = ircRawMessage.IndexOf(':', startIndex);
 
-            if (iLength == -1)
+            if (length == -1)
             {
-                iLength = sIRCRaw.Length;
+                length = ircRawMessage.Length;
             }
-            Channel = sIRCRaw.Substring(iStartIndex, iLength - iStartIndex);
+            Channel = ircRawMessage.Substring(startIndex, length - startIndex);
 
             // Badges
-            Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
+            Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(ircRawMessage, "@badges"));
             // Color
-            ColorHex = IRCParser.GetTwitchTagsValue(sIRCRaw, "color");
+            ColorHex = IRCParser.GetTwitchTagsValue(ircRawMessage, "color");
             // Display Name
-            DisplayName = IRCParser.GetTwitchTagsValue(sIRCRaw, "display-name").Replace(" ", "");
+            DisplayName = IRCParser.GetTwitchTagsValue(ircRawMessage, "display-name").Replace(" ", "");
             // Emotes Used
-            Emotes = new EmoteCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "emotes"));
+            Emotes = new EmoteCollection(IRCParser.GetTwitchTagsValue(ircRawMessage, "emotes"));
             // Message
-            string[] sMessageSplit = sIRCRaw.Split(new string[] { $"#{Channel} :" }, System.StringSplitOptions.None);
-            Message = sMessageSplit[0].Replace($"{sMessageSplit[0]}#{Channel} :", "");
+            string[] messageSplit = ircRawMessage.Split(new string[] { $"#{Channel} :" }, System.StringSplitOptions.None);
+            Message = messageSplit[0].Replace($"{messageSplit[0]}#{Channel} :", "");
             // Mod Status
-            Mod = IRCParser.GetTwitchTagsValue(sIRCRaw, "mod") == "1";
+            Mod = IRCParser.GetTwitchTagsValue(ircRawMessage, "mod") == "1";
 
             // Message ID
-            string sMessageIDRaw = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-id");
-            switch (sMessageIDRaw)
+            string messageIdRaw = IRCParser.GetTwitchTagsValue(ircRawMessage, "msg-id");
+            switch (messageIdRaw)
             {
                 case "sub":
                     {
@@ -85,15 +108,14 @@
                     }
             }
             // Resub Consecutive Months
-            int iResubCount = 0;
-            if (int.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-months"), out iResubCount))
+            if (int.TryParse(IRCParser.GetTwitchTagsValue(ircRawMessage, "msg-param-months"), out int resubCount))
             {
-                ResubConsecutiveMonths = iResubCount;
+                ResubConsecutiveMonths = resubCount;
             }
 
             // Sub Plan
-            string sSubPlanRaw = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sub-plan");
-            switch (sSubPlanRaw.ToLower())
+            string subPlanRaw = IRCParser.GetTwitchTagsValue(ircRawMessage, "msg-param-sub-plan");
+            switch (subPlanRaw.ToLower())
             {
                 case "prime":
                     {
@@ -120,28 +142,27 @@
                     }
             }
             // Sub Gift Recipient Name
-            GiftedSubscriptionRecipientName = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-recipient-display-name");
+            GiftedSubscriptionRecipientName = IRCParser.GetTwitchTagsValue(ircRawMessage, "msg-param-recipient-display-name");
             // Gifted Subscription Count
-            int iGiftedSubCount = 0;
-            if (int.TryParse(IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sender-count"), out iGiftedSubCount))
+            if (int.TryParse(IRCParser.GetTwitchTagsValue(ircRawMessage, "msg-param-sender-count"), out int giftedSubCount))
             {
-                GiftedSubscriptionsCount = iGiftedSubCount + 1;
+                GiftedSubscriptionsCount = giftedSubCount + 1;
             }
             // Sub Plan Name
-            SubscriptionPlanName = IRCParser.GetTwitchTagsValue(sIRCRaw, "msg-param-sub-plan-name").Replace("\\s", " ");
+            SubscriptionPlanName = IRCParser.GetTwitchTagsValue(ircRawMessage, "msg-param-sub-plan-name").Replace("\\s", " ");
             // Channel ID (Room ID)
-            ChannelID = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "room-id"));
+            ChannelID = int.Parse(IRCParser.GetTwitchTagsValue(ircRawMessage, "room-id"));
             // Subscriber Status
-            Subscriber = IRCParser.GetTwitchTagsValue(sIRCRaw, "subscriber") == "1";
+            Subscriber = IRCParser.GetTwitchTagsValue(ircRawMessage, "subscriber") == "1";
             // System Message
-            SystemMessage = IRCParser.GetTwitchTagsValue(sIRCRaw, "system-msg");
+            SystemMessage = IRCParser.GetTwitchTagsValue(ircRawMessage, "system-msg");
             // Twitch Turbo/Prime Status
-            Turbo = IRCParser.GetTwitchTagsValue(sIRCRaw, "turbo") == "1";
+            Turbo = IRCParser.GetTwitchTagsValue(ircRawMessage, "turbo") == "1";
             // User ID
-            UserID = int.Parse(IRCParser.GetTwitchTagsValue(sIRCRaw, "user-id"));
+            UserID = int.Parse(IRCParser.GetTwitchTagsValue(ircRawMessage, "user-id"));
             // User Type
-            string sUserTypeRaw = IRCParser.GetTwitchTagsValue(sIRCRaw, "user-type");
-            switch (sUserTypeRaw)
+            string userTypeRaw = IRCParser.GetTwitchTagsValue(ircRawMessage, "user-type");
+            switch (userTypeRaw)
             {
                 case "mod":
                     {

@@ -26,9 +26,9 @@
         private readonly string[] m_messageSeparators = { "\r\n" };
         private readonly WebSocket m_websocketClient;
         
-        public IRCCredentials Credentials { get; }
+        public IrcCredentials Credentials { get; }
 
-        public static TwitchClient GetInstance(IRCCredentials twitchCredentials = null)
+        public static TwitchClient GetInstance(IrcCredentials twitchCredentials = null)
         {
             if (s_TwitchClient == null)
             {
@@ -42,7 +42,7 @@
             return s_TwitchClient;
         }
         
-        private TwitchClient(IRCCredentials twitchCredentials)
+        private TwitchClient(IrcCredentials twitchCredentials)
         {
             s_IsInitialized = false;
             if (twitchCredentials == null || !twitchCredentials.Valid)

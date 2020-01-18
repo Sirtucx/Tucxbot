@@ -66,6 +66,9 @@
     <Compile Include="Mods\IModHandler.cs" />
     <Compile Include="Mods\Listeners\ChatMessageListener.cs" />
     <Compile Include="Mods\Listeners\IModListener.cs" />
+    <Compile Include="Mods\Listeners\SubscriberListener.cs" />
+    <Compile Include="Mods\Listeners\UserLeftListener.cs" />
+    <Compile Include="Mods\Listeners\UserJoinedListener.cs" />
     <Compile Include="Mods\Listeners\WhisperMessageListener.cs" />
     <Compile Include="Mods\ModManager.cs" />
     <Compile Include="Program.cs" />

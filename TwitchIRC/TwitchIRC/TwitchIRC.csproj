@@ -69,11 +69,10 @@
     <Compile Include="Twitch\Containers\UserNotice.cs" />
     <Compile Include="Twitch\Mods\ChatMessageMod.cs" />
     <Compile Include="Twitch\Mods\IMod.cs" />
-    <Compile Include="Twitch\Mods\IOnSubscriberMod.cs" />
-    <Compile Include="Twitch\Mods\IOnUserJoinedMod.cs" />
-    <Compile Include="Twitch\Mods\IOnUserLeaveMod.cs" />
-    <Compile Include="Twitch\Mods\IWhisperMessageMod.cs" />
     <Compile Include="Twitch\Containers\WhisperMessage.cs" />
+    <Compile Include="Twitch\Mods\SubscriberMod.cs" />
+    <Compile Include="Twitch\Mods\UserJoinedMod.cs" />
+    <Compile Include="Twitch\Mods\UserLeftMod.cs" />
     <Compile Include="Twitch\Mods\WhisperMessageMod.cs" />
   </ItemGroup>
   <ItemGroup>

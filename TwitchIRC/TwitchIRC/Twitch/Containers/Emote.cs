@@ -2,12 +2,12 @@
 {
     public class Emote
     {
-        public int ID { get; protected set; }
-        private string BaseURL = "http://static-cdn.jtvnw.net/emoticons/v1/<emote ID>/<size>";
+        public int Id { get; }
+        private string BaseUrl = "http://static-cdn.jtvnw.net/emoticons/v1/<emote ID>/<size>";
 
         public Emote(int id)
         {
-            ID = id;
+            Id = id;
         }
     }
 }

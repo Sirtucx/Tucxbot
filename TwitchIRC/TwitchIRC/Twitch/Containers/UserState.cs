@@ -4,28 +4,27 @@
     
     public class UserState
     {
-        public string Raw { get; protected set; }
-        public string Channel { get; protected set; }
+        public string RawMessage { get; }
+        public string Channel { get; }
+        public BadgeCollection Badges { get; }
+        public string ColorHex { get; }
+        public string DisplayName { get; }
+        public bool Mod { get; }
 
-        public BadgeCollection Badges { get; protected set; }
-        public string ColorHex { get; protected set; }
-        public string DisplayName { get; protected set; }
-        public bool Mod { get; protected set; }
-
-        public UserState(string sIRCRaw)
+        public UserState(string ircRawMessage)
         {
-            // Raw IRC string
-            Raw = sIRCRaw;
+            // RawMessage IRC string
+            RawMessage = ircRawMessage;
             // Channel notice was sent in
-            Channel = sIRCRaw.Substring(sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1, sIRCRaw.IndexOf(' ', sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1) - (sIRCRaw.IndexOf('#', sIRCRaw.IndexOf("PRIVMSG")) + 1));
+            Channel = ircRawMessage.Substring(ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1, ircRawMessage.IndexOf(' ', ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1) - (ircRawMessage.IndexOf('#', ircRawMessage.IndexOf("PRIVMSG")) + 1));
             // Badges
-            Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(sIRCRaw, "@badges"));
+            Badges = new BadgeCollection(IRCParser.GetTwitchTagsValue(ircRawMessage, "@badges"));
             // Color
-            ColorHex = IRCParser.GetTwitchTagsValue(sIRCRaw, "color");
+            ColorHex = IRCParser.GetTwitchTagsValue(ircRawMessage, "color");
             // Display Name
-            DisplayName = IRCParser.GetTwitchTagsValue(sIRCRaw, "display-name").Replace(" ", "");
+            DisplayName = IRCParser.GetTwitchTagsValue(ircRawMessage, "display-name").Replace(" ", "");
             // Mod Status
-            Mod = IRCParser.GetTwitchTagsValue(sIRCRaw, "mod") == "1";
+            Mod = IRCParser.GetTwitchTagsValue(ircRawMessage, "mod") == "1";
         }
     }
 }

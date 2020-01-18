@@ -2,26 +2,26 @@
 {
     using IRC;
     
-    public class IRCCredentials
+    public class IrcCredentials
     {
-        public string TwitchUsername;
-        public string TwitchOAuth;
-        public string TwitchHost;
-        public int TwitchPort;
-        public bool Valid;
+        public readonly string TwitchUsername;
+        public readonly string TwitchOAuth;
+        public readonly string TwitchHost;
+        public readonly int TwitchPort;
+        public readonly bool Valid;
 
-        public IRCCredentials (string sTwitchUsername, string sTwitchOAuth, string sTwitchHost = "irc-ws.chat.twitch.tv", int iTwitchPort = 80)
+        public IrcCredentials (string twitchUsername, string twitchOAuth, string twitchHost = "irc-ws.chat.twitch.tv", int twitchPort = 80)
         {
-            Valid = IRCHelper.IsValidNickname(sTwitchUsername);
-            TwitchUsername = sTwitchUsername.ToLower();
-            if (!sTwitchOAuth.Contains(":"))
+            Valid = IRCHelper.IsValidNickname(twitchUsername);
+            TwitchUsername = twitchUsername.ToLower();
+            if (!twitchOAuth.Contains(":"))
             {
-                sTwitchOAuth = $"oauth:{sTwitchOAuth.Replace("oauth", "")}";
+                twitchOAuth = $"oauth:{twitchOAuth.Replace("oauth", "")}";
             }
 
-            TwitchOAuth = sTwitchOAuth;
-            TwitchHost = sTwitchHost;
-            TwitchPort = iTwitchPort;
+            TwitchOAuth = twitchOAuth;
+            TwitchHost = twitchHost;
+            TwitchPort = twitchPort;
         }
     }
 }
