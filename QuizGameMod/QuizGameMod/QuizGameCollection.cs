@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace QuizGameMod
+﻿namespace QuizGameMod
 {
+    using System.Collections.Generic;
+    
     public class QuizGameCollection
     {
-        public Dictionary<string, List<QuizGame_Info>> QuizGames;
+        public readonly Dictionary<string, List<QuizGameInfo>> QuizGames;
 
         public QuizGameCollection()
         {
-            QuizGames = new Dictionary<string, List<QuizGame_Info>>();
-            QuizGames.Add("default", new List<QuizGame_Info>());
-            QuizGames.Add("YourChannelHere", new List<QuizGame_Info>());
-            QuizGames["default"].Add(new QuizGame_Info("Here is a question for all channels", "This is the answer", 1, 0));
-            QuizGames["YourChannelHere"].Add(new QuizGame_Info("Here is your channel specific question here", "This is the channel answer", 1, 0));
+            QuizGames = new Dictionary<string, List<QuizGameInfo>>
+            {
+                {"default", new List<QuizGameInfo>()}, {"YourChannelHere", new List<QuizGameInfo>()}
+            };
+            QuizGames["default"].Add(new QuizGameInfo("Here is a question for all channels", "This is the answer", 1, 0));
+            QuizGames["YourChannelHere"].Add(new QuizGameInfo("Here is your channel specific question here", "This is the channel answer", 1, 0));
         }
     }
 }

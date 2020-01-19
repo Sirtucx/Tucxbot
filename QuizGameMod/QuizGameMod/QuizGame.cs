@@ -1,123 +1,96 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Twitch_Websocket;
-
-namespace QuizGameMod
+﻿namespace QuizGameMod
 {
+    using System.Collections.Generic;
+    
     public class QuizGame
     {
-        public string Answer
-        {
-            get
-            {
-                return m_CurrentGameContent.Answer;
-            }
-        }
-        public string Instructions
-        {
-            get
-            {
-                return m_CurrentGameContent?.Question;
-            }
-        }
-        public List<string> Winners
-        {
-            get
-            {
-                return m_CurrentWinners;
-            }
-        }
+       private QuizGameInfo m_currentGameContent;
+       private int m_numberOfWinners;
+       private int m_currentCooldown;
+       private int m_hintCooldown;
+        
+       private readonly List<string> m_currentWinners;
 
-        protected QuizGame_Info m_CurrentGameContent;
-        protected List<string> m_CurrentWinners;
-        protected int m_iNumberOfWinners;
-        protected int m_iCurrentCooldown;
-        protected int m_iHintCooldown;
+       public string Answer => m_currentGameContent.Answer;
+       public string Instructions => m_currentGameContent?.Question;
+       public List<string> Winners => m_currentWinners;
 
         public QuizGame ()
         {
-            m_CurrentGameContent = null;
-            m_CurrentWinners = new List<string>();
+            m_currentGameContent = null;
+            m_currentWinners = new List<string>();
         }
 
-        public void StartNewGame(QuizGame_Info quizGame_Info)
+        public void StartNewGame(QuizGameInfo quizGameInfo)
         {
-            if (m_CurrentGameContent == null)
+            if (m_currentGameContent != null)
             {
-                m_CurrentGameContent = quizGame_Info;
-                m_iNumberOfWinners = quizGame_Info.NumberOfWinners;
-                m_CurrentWinners.Clear();
+                return;
             }
+
+            m_currentGameContent = quizGameInfo;
+            m_numberOfWinners = quizGameInfo.NumberOfWinners;
+            m_currentWinners.Clear();
         }
 
         public bool CheckAnswer(string userAnswer)
         {
-            if (m_CurrentGameContent != null)
-            {
-                if (userAnswer.ToLower() == m_CurrentGameContent?.Answer.ToLower())
-                {
-                    return true;
-                }
-            }
-            return false;
+            return userAnswer.ToLower() == m_currentGameContent?.Answer.ToLower();
         }
 
         public void EndGame()
         {
-            m_CurrentGameContent = null;
+            m_currentGameContent = null;
         }
 
         public bool ReadyForNewGame()
         {
-            return m_iCurrentCooldown <= 0;
+            return m_currentCooldown <= 0;
         }
 
         public bool ReadyForHint()
         {
-            return m_iHintCooldown <= 0;
+            return m_hintCooldown <= 0;
         }
 
         public void Tick(int tickRate)
         {
-            if (m_CurrentGameContent == null)
+            if (m_currentGameContent == null)
             {
-                m_iCurrentCooldown -= tickRate;
+                m_currentCooldown -= tickRate;
             }
             else
             {
-                m_iHintCooldown -= tickRate;
+                m_hintCooldown -= tickRate;
             }
         }
 
         public void SetGameCooldown(int cooldown)
         {
-            m_iCurrentCooldown = cooldown;
+            m_currentCooldown = cooldown;
         }
 
         public void SetHintCooldown(int cooldown)
         {
-            m_iHintCooldown = cooldown;
+            m_hintCooldown = cooldown;
         }
 
         public void AddWinner(string username)
         {
-            if (!m_CurrentWinners.Contains(username))
+            if (!m_currentWinners.Contains(username))
             {
-                m_CurrentWinners.Add(username);
+                m_currentWinners.Add(username);
             }
         }
 
         public bool IsQualifiedWinner()
         {
-            return m_CurrentWinners.Count < m_iNumberOfWinners;
+            return m_currentWinners.Count < m_numberOfWinners;
         }
 
         public virtual string GetHint()
         {
-            return m_CurrentGameContent?.Answer;
+            return m_currentGameContent?.Answer;
         }
     }
 }

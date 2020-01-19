@@ -1,259 +1,304 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Twitch_Websocket;
-using Twitch_Websocket.Mod_Interfaces;
-using System.Threading;
-using Microsoft.VisualBasic;
-using System.Windows.Forms;
-
-
-namespace QuizGameMod
+﻿namespace QuizGameMod
 {
-    public class GameController : IWhisperMessageMod, IChatMessageMod
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Microsoft.VisualBasic;
+    using Twitch.Containers;
+    using Twitch.Core;
+    
+    public class GameController
     {
         public Action<string, string, int> OnWinnerAchieved;
 
-        protected const string m_sSubscribeCommand = "!game_sub";
-        protected const string m_sUnsubscribeCommand = "!game_unsub";
-        protected const string m_sAddGameCommand = "!game_add";
-        protected const string m_sRemoveGameCommand = "!game_remove";
-        protected const string m_sUnsubscribeAllCommand = "!game_unsub_all";
+        private static GameController instance;
 
-        protected const int m_TickRate = 333;
-        protected const int m_HintCooldown = 30000;
-        protected const int m_GameCooldown = 150000;
+        private const string SUBSCRIBE_COMMAND = "!game_sub";
+        private const string UNSUBSCRIBE_COMMAND = "!game_unsub";
+        private const string ADD_GAME_COMMAND = "!game_add";
+        private const string REMOVE_GAME_COMMAND = "!game_remove";
+        private const string UNSUBSCRIBE_ALL_COMMAND = "!game_unsub_all";
+        private const int TICK_RATE = 333;
+        private const int HINT_COOLDOWN = 30000;
+        private const int GAME_COOLDOWN = 150000;
 
-        protected QuizContentLoader m_ContentLoader;
-        protected Dictionary<string, QuizGame> m_QuizGames;
-        protected Dictionary<string, List<string>> m_SubscribedUsers;
-        protected Thread m_MainThread;
-        protected bool m_bIsActive;
-        protected object m_LockObject;
-
-        public GameController ()
+        private QuizContentLoader m_contentLoader;
+        private Thread m_mainThread;
+        private bool m_isActive;
+        
+        private readonly object m_lockObject;
+        private readonly Dictionary<string, QuizGame> m_quizGames;
+        private readonly Dictionary<string, List<string>> m_subscribedUsers;
+        
+        public static GameController Instance
         {
-            m_QuizGames = new Dictionary<string, QuizGame>();
-            m_SubscribedUsers = new Dictionary<string, List<string>>();
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new GameController();
+                }
+
+                return instance;
+            }
+        }
+
+        private GameController ()
+        {
+            m_quizGames = new Dictionary<string, QuizGame>();
+            m_subscribedUsers = new Dictionary<string, List<string>>();
             LoadData();
 
-            if (m_bIsActive)
+            if (m_isActive)
             {
-                m_MainThread = new Thread(MainThreadFunction);
-                m_LockObject = new object();
-                m_MainThread.Start();
+                m_mainThread = new Thread(MainThreadFunction);
+                m_lockObject = new object();
+                m_mainThread.Start();
             }
         }
 
-        protected void LoadData()
+        private void LoadData()
         {
-            m_bIsActive = false;
+            m_isActive = false;
 
-            string sMessage = "Please enter how you want your quiz content to be loaded: ";
-            string[] sLoadTypes = Enum.GetNames(typeof(QuizContentLoader.LoadType));
-            for (int i = 0; i < sLoadTypes.Length; ++i)
+            string message = "Please enter how you want your quiz content to be loaded: ";
+            string[] loadTypes = Enum.GetNames(typeof(QuizContentLoader.LoadType));
+            for (int i = 0; i < loadTypes.Length; ++i)
             {
-                sMessage += $"\nFor {sLoadTypes[i]}, type {i}";
+                message += $"\nFor {loadTypes[i]}, type {i}";
+            }
+            
+            string response = Interaction.InputBox(message, "Select Content Load Type");
+
+            if (Enum.TryParse(response, out QuizContentLoader.LoadType contentLoadType))
+            {
+                m_contentLoader = new QuizContentLoader(contentLoadType);
             }
 
-
-            string sResponse = Interaction.InputBox(sMessage, "Select Content Load Type");
-            QuizContentLoader.LoadType contentLoadType;
-
-            if (Enum.TryParse<QuizContentLoader.LoadType>(sResponse, out contentLoadType))
+            m_isActive = m_contentLoader?.LoadedContent ?? false;
+        }
+        public void Shutdown()
+        {
+            foreach(KeyValuePair<string, QuizGame> kvp in m_quizGames)
             {
-                m_ContentLoader = new QuizContentLoader(contentLoadType);
+                kvp.Value.EndGame();
             }
-
-            m_bIsActive = m_ContentLoader != null ? m_ContentLoader.LoadedContent : false;
+            m_quizGames.Clear();
+            m_subscribedUsers.Clear();
+            m_isActive = false;
+            m_mainThread = null;
         }
 
-        public virtual void Process(WhisperMessage whisperMessage)
+        public virtual void ProcessWhisperMessage(WhisperMessage whisperMessage)
         {
             // !game_unsub_all
-            if (CheckCommand(m_sUnsubscribeAllCommand, whisperMessage.Message))
+            if (CheckCommand(UNSUBSCRIBE_ALL_COMMAND, whisperMessage.Message))
             {
-                if (m_SubscribedUsers.ContainsKey(whisperMessage.DisplayName))
-                {
-                    m_SubscribedUsers.Remove(whisperMessage.DisplayName);
-                }
+                UnsubscribeUserToGame(whisperMessage.Username);
             }
 
             // Submitting a guess
             else
             {
-                if (m_SubscribedUsers.ContainsKey(whisperMessage.DisplayName))
+                if (!HasUserSubmittedACorrectAnswer(whisperMessage.DisplayName, whisperMessage.Message, out string channelName))
                 {
-                    for (int i  = 0; i < m_SubscribedUsers[whisperMessage.DisplayName].Count; ++i)
-                    {
-                        if (m_QuizGames.ContainsKey(m_SubscribedUsers[whisperMessage.DisplayName][i]))
-                        {
-                            // User has guessed correctly
-                            if (m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].CheckAnswer(whisperMessage.Message))
-                            {
-                                OnWinnerAchieved?.Invoke(m_SubscribedUsers[whisperMessage.DisplayName][i], whisperMessage.DisplayName, m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].Winners.Count + 1);
-
-                                // If there are any remaining winner slots left?
-                                if (m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].IsQualifiedWinner())
-                                {
-                                    m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].AddWinner(whisperMessage.DisplayName);
-
-                                    // If there are no more qualified winner slots
-                                    if (!m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].IsQualifiedWinner())
-                                    {
-                                        // Display a message in the channel the game was "played" on, showcasing the winners
-                                        SendEndGameMessage(m_SubscribedUsers[whisperMessage.DisplayName][i], m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].Winners);
-
-                                        // End the game
-                                        m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].SetGameCooldown(m_GameCooldown);
-                                        m_QuizGames[m_SubscribedUsers[whisperMessage.DisplayName][i]].EndGame();
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    return;
                 }
+                
+                OnWinnerAchieved?.Invoke(channelName, whisperMessage.DisplayName, m_quizGames[channelName].Winners.Count + 1);
+
+                // If there are any remaining winner slots left?
+                if (!m_quizGames[channelName].IsQualifiedWinner())
+                {
+                    return;
+                }
+                
+                m_quizGames[channelName].AddWinner(whisperMessage.DisplayName);
+
+                // If there are no more qualified winner slots
+                if (m_quizGames[channelName].IsQualifiedWinner())
+                {
+                    return;
+                }
+                
+                // Display a message in the channel the game was "played" on, showcasing the winners
+                SendEndGameMessage(channelName,
+                    m_quizGames[channelName].Winners);
+
+                // End the game
+                m_quizGames[channelName].SetGameCooldown(GAME_COOLDOWN);
+                m_quizGames[channelName].EndGame();
             }
         }
 
-        public virtual void Process(ChatMessage chatMessage)
+        private bool HasUserSubmittedACorrectAnswer(string username, string whisperMessage, out string channelName)
         {
-            // !game_sub
-            if (CheckCommand(m_sSubscribeCommand, chatMessage.Message))
+            if (m_subscribedUsers.ContainsKey(username))
             {
-                if (!m_SubscribedUsers.ContainsKey(chatMessage.DisplayName))
+                for (int i = 0; i < m_subscribedUsers[username].Count; ++i)
                 {
-                    m_SubscribedUsers.Add(chatMessage.DisplayName, new List<string>());
-                }
-                m_SubscribedUsers[chatMessage.DisplayName].Add(chatMessage.Channel);
-
-
-                if (m_QuizGames.ContainsKey(chatMessage.Channel))
-                {
-                    if (!m_QuizGames[chatMessage.Channel].ReadyForNewGame())
+                    if (!m_quizGames.ContainsKey(m_subscribedUsers[username][i]) || !m_quizGames[m_subscribedUsers[username][i]].CheckAnswer(whisperMessage))
                     {
-                        // Tell the new subscribed player the current instruction
-                        TwitchClient.GetInstance().SendWhisperMessage(chatMessage.DisplayName, GetGameHintMessage(chatMessage.Channel));
+                        continue;
                     }
-                }
-            }
-
-            // !game_unsub
-            else if (CheckCommand(m_sUnsubscribeCommand, chatMessage.Message))
-            {
-                if (m_SubscribedUsers.ContainsKey(chatMessage.DisplayName))
-                {
-                    if (m_SubscribedUsers[chatMessage.DisplayName].Contains(chatMessage.Channel))
-                    {
-                        m_SubscribedUsers[chatMessage.DisplayName].Remove(chatMessage.Channel);
-                    }
-                }
-            }
-
-            // !game_add
-            else if (CheckCommand(m_sAddGameCommand, chatMessage.Message) && chatMessage.Mod)
-            {
-                if (!m_QuizGames.ContainsKey(chatMessage.Channel))
-                {
-                    m_QuizGames.Add(chatMessage.Channel, new QuizGame());
-                }
-            }
-
-            // !game_remove
-            else if (CheckCommand(m_sRemoveGameCommand, chatMessage.Message) && chatMessage.Mod)
-            {
-                if (m_QuizGames.ContainsKey(chatMessage.Channel))
-                {
-                    m_QuizGames[chatMessage.Channel].EndGame();
-                    m_QuizGames.Remove(chatMessage.Channel);
-                }
-            }
-        }
-
-        public virtual void Shutdown()
-        {
-            foreach(KeyValuePair<string, QuizGame> kvp in m_QuizGames)
-            {
-                kvp.Value.EndGame();
-            }
-            m_QuizGames.Clear();
-            m_SubscribedUsers.Clear();
-            m_bIsActive = false;
-        }
-
-        protected bool CheckCommand(string sCommand, string sMessage)
-        {
-            if (sMessage.Length >= sCommand.Length)
-            {
-                if (sMessage.Substring(0, sCommand.Length).ToLower() == sCommand)
-                {
+                    
+                    // User has guessed correctly
+                    channelName = m_subscribedUsers[username][i];
                     return true;
                 }
             }
+
+            channelName = "";
             return false;
         }
-
-        protected void MainThreadFunction()
+        
+        public virtual void ProcessChatMessage(ChatMessage chatMessage)
         {
-            while (m_bIsActive)
+            // !game_sub
+            if (CheckCommand(SUBSCRIBE_COMMAND, chatMessage.Message))
             {
-                lock(m_LockObject)
+                SubscribeUserToGame(chatMessage.DisplayName, chatMessage.Channel);
+            }
+
+            // !game_unsub
+            else if (CheckCommand(UNSUBSCRIBE_COMMAND, chatMessage.Message))
+            {
+                UnsubscribeUserToGame(chatMessage.DisplayName, chatMessage.Channel);
+            }
+
+            else if (chatMessage.Mod)
+            {
+                // !game_add
+                if (CheckCommand(ADD_GAME_COMMAND, chatMessage.Message))
                 {
-                    foreach(KeyValuePair<string, QuizGame> kvp in m_QuizGames)
-                    {
-                        kvp.Value.Tick(m_TickRate);
-
-                        if (kvp.Value.ReadyForNewGame())
-                        {
-                            // Get a new question for this quiz game.
-                            QuizGame_Info newGameQuestion = GetNewQuestion(kvp.Key);
-
-                            // Set the hint cooldown
-                            kvp.Value.SetHintCooldown(m_HintCooldown);
-
-                            // Set the quiz up
-                            kvp.Value.StartNewGame(newGameQuestion);
-
-                            // Send message in channel
-                            SendNewGameMessage(kvp.Key);
-                        }
-
-                        if (kvp.Value.ReadyForHint())
-                        {
-                            foreach (KeyValuePair<string, List<string>> subbedUsers in m_SubscribedUsers)
-                            {
-                                if (subbedUsers.Value.Contains(kvp.Key))
-                                {
-                                    TwitchClient.GetInstance().SendWhisperMessage(subbedUsers.Key, GetGameHintMessage(kvp.Key));
-                                }
-                            }
-
-                            kvp.Value.SetHintCooldown(m_HintCooldown);
-                        }
-                    }
+                    AddNewQuizGameToChannel(chatMessage.Channel);
                 }
-                Thread.Sleep(m_TickRate);
+
+                // !game_remove
+                else if (CheckCommand(REMOVE_GAME_COMMAND, chatMessage.Message))
+                {
+                    RemoveQuizGameFromChannel(chatMessage.Channel);
+                }
             }
         }
-
-        protected string GetGameHintMessage(string sChannel)
+        
+        private void SubscribeUserToGame(string username, string channelName)
         {
-            string sMessage = "";
+            if (!m_subscribedUsers.ContainsKey(username))
+            {
+                m_subscribedUsers.Add(username, new List<string>());
+            }
+            m_subscribedUsers[username].Add(channelName);
 
-            sMessage = $"{m_QuizGames[sChannel].Instructions} {m_QuizGames[sChannel].GetHint()}";
 
-            return sMessage;
+            if (m_quizGames.ContainsKey(channelName))
+            {
+                if (!m_quizGames[channelName].ReadyForNewGame())
+                {
+                    // Tell the new subscribed player the current instruction
+                    TwitchClient.GetInstance().SendWhisperMessage(username, GetGameHintMessage(channelName));
+                }
+            }
         }
-
-        protected void SendNewGameMessage(string sChannel)
+        private void UnsubscribeUserToGame(string username, string channelName = "")
         {
-            string sMessage = $"A new game will be starting in {m_HintCooldown / 1000} seconds. If you are not subbed to whispers from {TwitchClient.GetInstance().Credentials.TwitchUsername}'s whispers, type {m_sSubscribeCommand} to be notified and receive questions/hints. To unsubcribe from notifications type {m_sUnsubscribeCommand} in chat, or whisper {m_sUnsubscribeAllCommand} to {TwitchClient.GetInstance().Credentials.TwitchUsername} to unsubscribe from all games you are notified for.";
-            TwitchClient.GetInstance().SendChatMessage(sChannel, sMessage);
+            if (!m_subscribedUsers.ContainsKey(username))
+            {
+                return;
+            }
+            
+            if (m_subscribedUsers[username].Contains(channelName))
+            {
+                m_subscribedUsers[username].Remove(channelName);
+            }
+            else if (string.IsNullOrEmpty(channelName))
+            {
+                m_subscribedUsers.Remove(username);
+            }
         }
+        private void AddNewQuizGameToChannel(string channelName)
+        {
+            if (!m_quizGames.ContainsKey(channelName))
+            {
+                m_quizGames.Add(channelName, new QuizGame());
+            }
+        }
+        private void RemoveQuizGameFromChannel(string channelName)
+        {
+            if (m_quizGames.ContainsKey(channelName))
+            {
+                m_quizGames[channelName].EndGame();
+                m_quizGames.Remove(channelName);
+            }
+        }
+        private bool CheckCommand(string sCommand, string sMessage)
+        {
+            if (sMessage.Length < sCommand.Length)
+            {
+                return false;
+            }
+            
+            return sMessage.Substring(0, sCommand.Length).ToLower() == sCommand;
+        }
+        private void MainThreadFunction()
+        {
+            while (m_isActive)
+            {
+                lock(m_lockObject)
+                {
+                    foreach(KeyValuePair<string, QuizGame> kvp in m_quizGames)
+                    {
+                        kvp.Value.Tick(TICK_RATE);
 
-        protected void SendEndGameMessage(string sChannel, List<string> winners)
+                        PrepareNewGameIfReady(kvp.Key, kvp.Value);
+                        SendHintToSubbedUsers(kvp.Key, kvp.Value);
+                    }
+                }
+                Thread.Sleep(TICK_RATE);
+            }
+        }
+        private void PrepareNewGameIfReady(string channelName, QuizGame quizGame)
+        {
+            if (quizGame.ReadyForNewGame())
+            {
+                // Get a new question for this quiz game.
+                QuizGameInfo newGameQuestion = GetNewQuestion(channelName);
+
+                // Set the hint cooldown
+                quizGame.SetHintCooldown(HINT_COOLDOWN);
+
+                // Set the quiz up
+                quizGame.StartNewGame(newGameQuestion);
+
+                // Send message in channel
+                SendNewGameMessage(channelName);
+            }
+        }
+        private void SendHintToSubbedUsers(string channelName, QuizGame quizGame)
+        {
+            if (quizGame.ReadyForHint())
+            {
+                foreach (KeyValuePair<string, List<string>> subbedUsers in m_subscribedUsers)
+                {
+                    if (subbedUsers.Value.Contains(channelName))
+                    {
+                        TwitchClient.GetInstance().SendWhisperMessage(subbedUsers.Key, GetGameHintMessage(channelName));
+                    }
+                }
+
+                quizGame.SetHintCooldown(HINT_COOLDOWN);
+            }
+        }
+        private string GetGameHintMessage(string channelName)
+        {
+            return $"{m_quizGames[channelName].Instructions} {m_quizGames[channelName].GetHint()}";
+        }
+        private void SendNewGameMessage(string channelName)
+        {
+            string sMessage = $"A new game will be starting in {HINT_COOLDOWN / 1000} seconds. If you are not subbed to whispers from {TwitchClient.GetInstance().Credentials.TwitchUsername}'s whispers, type {SUBSCRIBE_COMMAND} to be notified and receive questions/hints. To unsubcribe from notifications type {UNSUBSCRIBE_COMMAND} in chat, or whisper {UNSUBSCRIBE_ALL_COMMAND} to {TwitchClient.GetInstance().Credentials.TwitchUsername} to unsubscribe from all games you are notified for.";
+            TwitchClient.GetInstance().SendChatMessage(channelName, sMessage);
+        }
+        private void SendEndGameMessage(string channelName, List<string> winners)
         {
             string sMessage = "Congrats to ";
 
@@ -262,14 +307,13 @@ namespace QuizGameMod
                 sMessage += $"{(i + 1)}. @{winners[i]} ";
             }
 
-            sMessage += $"for correctly guessing ({m_QuizGames[sChannel].Answer}).";
+            sMessage += $"for correctly guessing ({m_quizGames[channelName].Answer}).";
 
-            TwitchClient.GetInstance().SendChatMessage(sChannel, sMessage);
+            TwitchClient.GetInstance().SendChatMessage(channelName, sMessage);
         }
-
-        protected virtual QuizGame_Info GetNewQuestion(string sChannel)
+        private QuizGameInfo GetNewQuestion(string channelName)
         {
-            return m_ContentLoader.GetNewQuestion(sChannel);
+            return m_contentLoader.GetNewQuestion(channelName);
         }
     }
 }
