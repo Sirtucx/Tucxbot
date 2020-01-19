@@ -12,8 +12,8 @@ namespace QuizGameMod
 {
     public class DatabaseHandler
     {
-        protected string m_sConnectionString;
-        public bool ConnectionReady { get; protected set; }
+        private string m_connectionString;
+        public bool ConnectionReady { get; private set; }
 
         public DatabaseHandler()
         {
@@ -21,7 +21,7 @@ namespace QuizGameMod
             LoadConnectionData();
         }
 
-        protected void CreateSaveData()
+        private void CreateSaveData()
         {
             string sConnectionString = Interaction.InputBox("Please enter your SQL connection string.", DefaultResponse: "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password = myPassword;");
 
@@ -35,39 +35,46 @@ namespace QuizGameMod
                 using (StreamWriter writer = new StreamWriter(saveFileDialog.OpenFile()))
                 {
                     writer.WriteLine($"Connection String:{sConnectionString}");
-                    m_sConnectionString = sConnectionString;
+                    m_connectionString = sConnectionString;
                     ConnectionReady = true;
                 }
             }
         }
 
-        protected void LoadSaveData()
+        private void LoadSaveData()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "txt files (*.txt)|*.txt|*.txt";
             openFileDialog.FilterIndex = 0;
             openFileDialog.InitialDirectory = Environment.CurrentDirectory;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (openFileDialog.ShowDialog() != DialogResult.OK)
             {
-                using (StreamReader reader = new StreamReader(openFileDialog.OpenFile()))
+                return;
+            }
+            
+            using (StreamReader reader = new StreamReader(openFileDialog.OpenFile()))
+            {
+                string sRawData = reader.ReadLine();
+                
+                if (sRawData == null)
                 {
-                    string sRawData = reader.ReadLine();
-                    if (sRawData != null)
-                    {
-                        string[] sData = sRawData.Split(':');
-
-                        if (sData.Length == 2)
-                        {
-                            m_sConnectionString = sData[1];
-                            ConnectionReady = true;
-                        }
-                    }
+                    return;
                 }
+                
+                string[] sData = sRawData.Split(':');
+
+                if (sData.Length != 2)
+                {
+                    return;
+                }
+                
+                m_connectionString = sData[1];
+                ConnectionReady = true;
             }
         }
 
-        protected void LoadConnectionData()
+        private void LoadConnectionData()
         {
             DialogResult loadFilePreparation = MessageBox.Show("Would you like to create a new file to store your SQL connection string?", "Create SQL Save File", MessageBoxButtons.YesNo);
 
@@ -81,71 +88,77 @@ namespace QuizGameMod
             }
         }
 
-        public SqlDataReader GetAllData(string sTableName)
+        public SqlDataReader GetAllData(string tableName)
         {
-            return GetSelectData(new string[] { "*" }, sTableName, string.Empty);
+            return GetSelectData(new string[] { "*" }, tableName, string.Empty);
         }
-        public SqlDataReader GetSelectData(string[] sDataNames, string sTableName, string sConditions)
+        public SqlDataReader GetSelectData(string[] dataNames, string tableName, string conditions)
         {
-            SqlDataReader reader = null;
-            if (ConnectionReady)
+            SqlDataReader reader;
+            if (!ConnectionReady)
             {
-                using (SqlConnection connection = new SqlConnection(m_sConnectionString))
+                return null;
+            }
+            
+            using (SqlConnection connection = new SqlConnection(m_connectionString))
+            {
+                string sCommand = $"SELECT ";
+                if (dataNames != null)
                 {
-                    string sCommand = $"SELECT ";
-                    if (sDataNames != null)
+                    for (int i = 0; i < dataNames.Length; ++i)
                     {
-                        for (int i = 0; i < sDataNames.Length; ++i)
-                        {
-                            sCommand += sDataNames[i] + (i < sDataNames.Length - 1 ? ", " : "");
-                        }
+                        sCommand += dataNames[i] + (i < dataNames.Length - 1 ? ", " : "");
                     }
+                }
 
-                    sConditions += $"FROM {sTableName}";
+                conditions += $"FROM {tableName}";
 
-                    if (!string.IsNullOrEmpty(sConditions))
+                if (!string.IsNullOrEmpty(conditions))
+                {
+                    if (!conditions.ToUpper().Contains("WHERE"))
                     {
-                        if (!sConditions.ToUpper().Contains("WHERE"))
-                        {
-                            sConditions = $" WHERE {sConditions}";
-                        }
+                        conditions = $" WHERE {conditions}";
                     }
+                }
 
-                    sCommand += sConditions;
-                    using (SqlCommand command = new SqlCommand(sCommand, connection))
+                sCommand += conditions;
+                using (SqlCommand command = new SqlCommand(sCommand, connection))
+                {
+                    try
                     {
-                        try
-                        {
-                            connection.Open();
-                            reader = command.ExecuteReader();
-                        }
-                        catch (Exception e)
-                        {
-                            // TODO: Write to a log file.
-                            return null;
-                        }
+                        connection.Open();
+                        reader = command.ExecuteReader();
+                    }
+                    catch (Exception e)
+                    {
+                        // TODO: Write to a log file.
+                        return null;
                     }
                 }
             }
             return reader;
         }
-        protected void RunStoredProceedure(string sStoredProceedureName, Dictionary<string, object> parameters = null)
+        private void RunStoredProcedure(string storedProcedureName, Dictionary<string, object> parameters = null)
         {
             SqlDataReader temp = null;
-            RunStoredProceedure(sStoredProceedureName, out temp, parameters);
+            RunStoredProcedure(storedProcedureName, out temp, parameters);
         }
-        protected void RunStoredProceedure(string sStoredProceedureName, out SqlDataReader sqlData, Dictionary<string, object> parameters = null)
+        private void RunStoredProcedure(string storedProcedureName, out SqlDataReader sqlData, Dictionary<string, object> parameters = null)
         {
             if (ConnectionReady)
             {
-                using (SqlConnection connection = new SqlConnection(m_sConnectionString))
+                using (SqlConnection connection = new SqlConnection(m_connectionString))
                 {
-                    using (SqlCommand command = new SqlCommand(sStoredProceedureName, connection))
+                    using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
                     {
                         command.CommandType = System.Data.CommandType.StoredProcedure;
-                        foreach (KeyValuePair<string, object> kvp in parameters)
+                        if (parameters != null)
                         {
-                            command.Parameters.Add(new SqlParameter($"@{kvp.Key}", kvp.Value));
+
+                            foreach (KeyValuePair<string, object> kvp in parameters)
+                            {
+                                command.Parameters.Add(new SqlParameter($"@{kvp.Key}", kvp.Value));
+                            }
                         }
 
                         try

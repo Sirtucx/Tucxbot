@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic;
-using System.Windows.Forms;
-using System.IO;
-using Newtonsoft.Json;
-using System.Data.SqlClient;
-
-namespace QuizGameMod
+﻿namespace QuizGameMod
 {
+    using System;
+    using System.Collections.Generic;
+    using Microsoft.VisualBasic;
+    using System.Windows.Forms;
+    using System.IO;
+    using Newtonsoft.Json;
+    using System.Data.SqlClient;
+    
     public class QuizContentLoader
     {
         public enum LoadType
@@ -20,28 +17,23 @@ namespace QuizGameMod
             SQL = 1
         }
 
-        public bool LoadedContent
-        {
-            get
-            {
-                return m_bLoadedContent;
-            }
-        }
-        protected LoadType m_CurrentLoadType;
-        protected QuizGameCollection m_QuizGameContent;
-        protected DatabaseHandler m_DatabaseHandler;
-        protected Dictionary<string, List<QuizGame_Info>> m_UsedQuestions;
-        protected Dictionary<string, List<QuizGame_Info>> m_AllQuestions;
-        protected bool m_bLoadedContent;
-        protected Random m_RNG;
+        private LoadType m_currentLoadType;
+        private QuizGameCollection m_quizGameContent;
+        private DatabaseHandler m_databaseHandler;
+        private Dictionary<string, List<QuizGameInfo>> m_usedQuestions;
+        private Dictionary<string, List<QuizGameInfo>> m_allQuestions;
+        private bool m_loadedContent;
+        private Random m_rng;
+        
+        public bool LoadedContent => m_loadedContent;
 
         public QuizContentLoader(LoadType loadType)
         {
-            m_bLoadedContent = false;
-            m_RNG = new Random();
-            m_CurrentLoadType = LoadType.None;
-            m_UsedQuestions = new Dictionary<string, List<QuizGame_Info>>();
-            m_AllQuestions = new Dictionary<string, List<QuizGame_Info>>();
+            m_loadedContent = false;
+            m_rng = new Random();
+            m_currentLoadType = LoadType.None;
+            m_usedQuestions = new Dictionary<string, List<QuizGameInfo>>();
+            m_allQuestions = new Dictionary<string, List<QuizGameInfo>>();
             HandleLoadType(loadType);
         }
 
@@ -56,55 +48,27 @@ namespace QuizGameMod
                     }
                 case LoadType.SQL:
                     {
-                        LoadSQL();
+                        LoadSql();
                         break;
                     }
             }
         }
 
-        protected void LoadFileBased_JSON()
+        private void LoadFileBased_JSON()
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Title = "Load your Quiz Game JSON file.";
             fileDialog.InitialDirectory = Environment.CurrentDirectory;
             fileDialog.Filter = "JSON File (*.json)|*.json";
             fileDialog.FilterIndex = 0;
-            bool bSelectedFile = false;
+            bool selectedValidFile = false;
 
-            while (!bSelectedFile)
+            while (!selectedValidFile)
             {
                 DialogResult result = fileDialog.ShowDialog();
                 if (result == DialogResult.OK)
                 {
-                    try
-                    {
-                        using (StreamReader sr = new StreamReader(fileDialog.FileName))
-                        {
-                            if (sr.Peek() >= 0)
-                            {
-                                string rawData = sr.ReadToEnd();
-                                m_QuizGameContent = JsonConvert.DeserializeObject<QuizGameCollection>(rawData);
-
-                                if (m_QuizGameContent != null)
-                                {
-                                    bSelectedFile = true;
-                                    m_bLoadedContent = true;
-                                    m_CurrentLoadType = LoadType.FileBased_JSON;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Interaction.MsgBox($"Unfortunately, there was an issue loading\n{fileDialog.FileName}. It was most likely not formatted properly. Please use a JSON parser to fix your quiz content file. A new JSON template file has been generated for you QuizGameContent_Template.json\nOnce you have done so please reload this mod and try again.");
-
-                        using (StreamWriter sw = new StreamWriter("QuizGameContent_Template.json"))
-                        {
-                            sw.Write(JsonConvert.SerializeObject(new QuizGameCollection(), Formatting.Indented));
-                        }
-                        bSelectedFile = true;
-                        m_bLoadedContent = false;
-                    }
+                    selectedValidFile = ValidateJsonFile(fileDialog.FileName);
                 }
                 else if (result == DialogResult.Cancel)
                 {
@@ -114,133 +78,171 @@ namespace QuizGameMod
             }
         }
 
-        protected void LoadSQL()
+        private bool ValidateJsonFile(string fileName)
         {
-            m_DatabaseHandler = new DatabaseHandler();
-
-            if (m_DatabaseHandler.ConnectionReady)
+            try
             {
-                m_bLoadedContent = true;
-                m_CurrentLoadType = LoadType.SQL;
+                using (StreamReader sr = new StreamReader(fileName))
+                {
+                    if (sr.Peek() >= 0)
+                    {
+                        string rawData = sr.ReadToEnd();
+                        m_quizGameContent = JsonConvert.DeserializeObject<QuizGameCollection>(rawData);
+
+                        if (m_quizGameContent != null)
+                        {
+                            m_loadedContent = true;
+                            m_currentLoadType = LoadType.FileBased_JSON;
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Interaction.MsgBox($"Unfortunately, there was an issue loading\n{fileName}. It was most likely not formatted properly. Please use a JSON parser to fix your quiz content file. A new JSON template file has been generated for you QuizGameContent_Template.json\nOnce you have done so please reload this mod and try again.");
+
+                using (StreamWriter sw = new StreamWriter("QuizGameContent_Template.json"))
+                {
+                    sw.Write(JsonConvert.SerializeObject(new QuizGameCollection(), Formatting.Indented));
+                }
+                m_loadedContent = false;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void LoadSql()
+        {
+            m_databaseHandler = new DatabaseHandler();
+
+            if (m_databaseHandler.ConnectionReady)
+            {
+                m_loadedContent = true;
+                m_currentLoadType = LoadType.SQL;
             }
             else
             {
                 Interaction.MsgBox($"Please reload this mod to select a new file and try again.");
-                m_bLoadedContent = false;
+                m_loadedContent = false;
             }
         }
 
-        public QuizGame_Info GetNewQuestion(string sChannel)
+        public QuizGameInfo GetNewQuestion(string channelName)
         {
-            if (m_CurrentLoadType == LoadType.FileBased_JSON)
+            switch (m_currentLoadType)
             {
-                return GetFileBasedQuestion(sChannel);
-            }
-            else if (m_CurrentLoadType == LoadType.SQL)
-            {
-                return GetSQLBasedQuestion(sChannel);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        protected QuizGame_Info GetFileBasedQuestion(string sChannel)
-        {
-            List<QuizGame_Info> randomQuestionList = new List<QuizGame_Info>();
-            QuizGame_Info randomQuestion = null;
-
-            if (m_QuizGameContent.QuizGames.ContainsKey("default"))
-            {
-                randomQuestionList.AddRange(m_QuizGameContent.QuizGames["default"]);
-            }
-
-            if (m_QuizGameContent.QuizGames.ContainsKey(sChannel))
-            {
-                randomQuestionList.AddRange(m_QuizGameContent.QuizGames[sChannel]);
-            }
-
-            if (m_UsedQuestions.ContainsKey(sChannel))
-            {
-                if (m_UsedQuestions[sChannel].Count == randomQuestionList.Count)
+                case LoadType.FileBased_JSON:
                 {
-                    m_UsedQuestions[sChannel].Clear();
+                    return GetFileBasedQuestion(channelName);
+                }
+                case LoadType.SQL:
+                {
+                    return GetSqlBasedQuestion(channelName);
+                }
+                default:
+                {
+                    return null;
+                }
+            }
+        }
+
+        private QuizGameInfo GetFileBasedQuestion(string channelName)
+        {
+            List<QuizGameInfo> randomQuestionList = new List<QuizGameInfo>();
+            QuizGameInfo randomQuestion = null;
+
+            if (m_quizGameContent.QuizGames.ContainsKey("default"))
+            {
+                randomQuestionList.AddRange(m_quizGameContent.QuizGames["default"]);
+            }
+
+            if (m_quizGameContent.QuizGames.ContainsKey(channelName))
+            {
+                randomQuestionList.AddRange(m_quizGameContent.QuizGames[channelName]);
+            }
+
+            if (m_usedQuestions.ContainsKey(channelName))
+            {
+                if (m_usedQuestions[channelName].Count == randomQuestionList.Count)
+                {
+                    m_usedQuestions[channelName].Clear();
                 }
             }
             else
             {
-                m_UsedQuestions.Add(sChannel, new List<QuizGame_Info>());
+                m_usedQuestions.Add(channelName, new List<QuizGameInfo>());
             }
 
             while (randomQuestion == null)
             {
-                int iRandomIndex = m_RNG.Next(0, randomQuestionList.Count);
+                int iRandomIndex = m_rng.Next(0, randomQuestionList.Count);
 
-                if (!m_UsedQuestions[sChannel].Contains(randomQuestionList[iRandomIndex]))
+                if (!m_usedQuestions[channelName].Contains(randomQuestionList[iRandomIndex]))
                 {
                     randomQuestion = randomQuestionList[iRandomIndex];
-                    m_UsedQuestions[sChannel].Add(randomQuestion);
+                    m_usedQuestions[channelName].Add(randomQuestion);
                 }
             }
             return randomQuestion;
         }
 
-        protected QuizGame_Info GetSQLBasedQuestion(string sChannel)
+        private QuizGameInfo GetSqlBasedQuestion(string channelName)
         {
-            if (!m_AllQuestions.ContainsKey(sChannel))
+            if (!m_allQuestions.ContainsKey(channelName))
             {
-                SqlDataReader channelOverrideData = m_DatabaseHandler.GetSelectData(new string[] { "*" }, "QuizCategoryOverride", $"WHERE channel like {sChannel.ToLower()}");
+                SqlDataReader channelOverrideData = m_databaseHandler.GetSelectData(new string[] { "*" }, "QuizCategoryOverride", $"WHERE channel like {channelName.ToLower()}");
 
                 if (channelOverrideData != null)
                 {
-                    string sCondition = "";
+                    string condition = "";
                     if (channelOverrideData.HasRows)
                     {
                         channelOverrideData.Read();
                         string categoryOverrides = channelOverrideData["category_list"].ToString();
                         string[] categories = categoryOverrides.Split(',');
 
-                        sCondition = "WHERE ";
+                        condition = "WHERE ";
 
                         for (int i = 0; i < categories.Length; ++i)
                         {
-                            sCondition += $"category like \'{categories[i]}\' {(i < categories.Length - 1 ? "or " : "")}";
+                            condition += $"category like \'{categories[i]}\' {(i < categories.Length - 1 ? "or " : "")}";
                         }
                     }
 
-                    SqlDataReader questionListData = m_DatabaseHandler.GetSelectData(new string[] { "*" }, "Questions", sCondition);
+                    SqlDataReader questionListData = m_databaseHandler.GetSelectData(new string[] { "*" }, "Questions", condition);
 
                     if (questionListData != null)
                     {
-                        m_AllQuestions.Add(sChannel, new List<QuizGame_Info>());
+                        m_allQuestions.Add(channelName, new List<QuizGameInfo>());
                         while (questionListData.Read())
                         {
-                            QuizGame_Info newQuestion = new QuizGame_Info(questionListData["question"].ToString(), questionListData["answer"].ToString(), (int)questionListData["winners"], 0);
-                            m_AllQuestions[sChannel].Add(newQuestion);
+                            QuizGameInfo newQuestion = new QuizGameInfo(questionListData["question"].ToString(), questionListData["answer"].ToString(), (int)questionListData["winners"], 0);
+                            m_allQuestions[channelName].Add(newQuestion);
                         }
                     }
                     else
                     {
                         // TODO: Something went wrong in the Question Query
-                        throw new Exception($"QuizContentLoader.GetSQLBasedQuestion({sChannel}), Something went wrong in the Question Query");
+                        throw new Exception($"QuizContentLoader.GetSqlBasedQuestion({channelName}), Something went wrong in the Question Query");
                     }
                 }
                 else
                 {
                     // TODO: Something went wrong in the Channel Override Query
-                    throw new Exception($"QuizContentLoader.GetSQLBasedQuestion({sChannel}), Something went wrong in the Channel Override Query");
+                    throw new Exception($"QuizContentLoader.GetSqlBasedQuestion({channelName}), Something went wrong in the Channel Override Query");
                 }
             }
 
-            QuizGame_Info question;
+            QuizGameInfo question;
             do
             {
-                question = m_AllQuestions[sChannel][m_RNG.Next(0, m_AllQuestions[sChannel].Count)];
+                question = m_allQuestions[channelName][m_rng.Next(0, m_allQuestions[channelName].Count)];
             }
-            while (m_UsedQuestions[sChannel].Contains(question));
+            while (m_usedQuestions[channelName].Contains(question));
 
-            m_UsedQuestions[sChannel].Add(question);
+            m_usedQuestions[channelName].Add(question);
             return question;
         }
     }
