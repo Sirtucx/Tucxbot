@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2020
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizGameMod", "QuizGameMod\QuizGameMod.csproj", "{FDDA34A4-011F-4EDF-B1F1-0687A3613BDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchIRC", "..\TwitchIRC\TwitchIRC\TwitchIRC.csproj", "{75C3925E-68BA-45B7-ABA9-053485575E1D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FDDA34A4-011F-4EDF-B1F1-0687A3613BDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDDA34A4-011F-4EDF-B1F1-0687A3613BDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDDA34A4-011F-4EDF-B1F1-0687A3613BDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDDA34A4-011F-4EDF-B1F1-0687A3613BDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75C3925E-68BA-45B7-ABA9-053485575E1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75C3925E-68BA-45B7-ABA9-053485575E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75C3925E-68BA-45B7-ABA9-053485575E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75C3925E-68BA-45B7-ABA9-053485575E1D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {56E24F0E-53E9-4A40-AF70-373E0FF4C45E}
+	EndGlobalSection
+EndGlobal

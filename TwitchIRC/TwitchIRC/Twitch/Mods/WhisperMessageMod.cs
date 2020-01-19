@@ -4,11 +4,11 @@
 
     public abstract class WhisperMessageMod : IMod
     {
-        protected abstract void ProcessChatMessage(WhisperMessage chatMessage);
+        protected abstract void ProcessWhisperMessage(WhisperMessage whisperMessage);
 
         public void Process(params object[] parameters)
         {
-            ProcessChatMessage((WhisperMessage)parameters[0]);
+            ProcessWhisperMessage((WhisperMessage)parameters[0]);
         }
         public abstract void Shutdown();
     }
